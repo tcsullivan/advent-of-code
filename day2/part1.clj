@@ -8,22 +8,18 @@
 
 (require '[clojure.string :as str])
 
-(loop [xpos 0 depth 0]
+(loop [data {:xpos 0 :depth 0}]
   (let [input (read-line)]
     (if (empty? input)
-      (println (* xpos depth))
+      (println (apply * (vals data)))
       (let [ins (str/split input #" ")
             n (Integer/parseInt (second ins))
             ]
         (recur
-          (if (= (first ins) "forward")
-            (+ xpos n)
-            xpos
-            )
           (case (first ins)
-            "up" (- depth n)
-            "down" (+ depth n)
-            depth
+            "forward" (update-in data [:xpos] + n)
+            "up" (update-in data [:depth] - n)
+            "down" (update-in data [:depth] + n)
             )
           )
         )
