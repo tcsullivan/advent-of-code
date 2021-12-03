@@ -1,31 +1,25 @@
-(def counts
-  (loop [line (read-line)
-         tot (repeat (count line) 0)
-         ]
-    (if (empty? line)
-      tot
-      (recur
-        (read-line)
-        (map + tot (map #(if (= % \1) 1 0) line))
-        )
-      )
-    )
+(require '[clojure.string :as str])
+
+(println
+  (->> "./in"
+       (slurp)
+       (str/split-lines)
+       (map (fn [l] (map #(if (= % \1) 1 0) l)))
+       (apply (partial map +))
+       (map #(if (< % 500) \1 \0))
+       (str/join)
+       (#(Integer/parseInt % 2))
+       (#(* % (bit-xor % (dec (int (Math/pow 2 12))))))
+       )
   )
 
-(loop [cnts counts gamma 0 epsilon 0]
-  (if (empty? cnts)
-    (println (* gamma epsilon))
-    (recur
-      (rest cnts)
-      (if (> (first cnts) 500)
-        (inc (* 2 gamma))
-        (* 2 gamma)
-        )
-      (if (< (first cnts) 500)
-        (inc (* 2 epsilon))
-        (* 2 epsilon)
-        )
-      )
-    )
-  )
+; (->> input data file name
+;      read in entire contents
+;      split contents into array of lines
+;      for each line, transform characters '1'/'0' to numbers
+;      build sum array using the lines
+;      convert back to array of characters
+;      join characters into single string
+;      convert binary string to a number (gamma)
+;      multiply gamma by its bit-inverse (bit length hard-coded)
 
