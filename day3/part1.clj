@@ -12,8 +12,6 @@
     )
   )
 
-(println counts)
-
 (loop [cnts counts gamma 0 epsilon 0]
   (if (empty? cnts)
     (println (* gamma epsilon))
