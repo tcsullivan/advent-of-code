@@ -16,10 +16,12 @@
             n (Integer/parseInt (second ins))
             ]
         (recur
-          (case (first ins)
-            "forward" (update-in data [:xpos] + n)
-            "up" (update-in data [:depth] - n)
-            "down" (update-in data [:depth] + n)
+          (apply (partial update-in data)
+            (case (first ins)
+              "forward" [[:xpos] + n]
+              "up" [[:depth] - n]
+              "down" [[:depth] + n]
+              )
             )
           )
         )
