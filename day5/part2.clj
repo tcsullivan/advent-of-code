@@ -14,45 +14,35 @@
     )
   )
 
-(defn mark-coord [cmap x y]
-  (vec
-    (for [c (range 0 (count cmap))]
-      (if (= c y)
-        (vec
-          (for [r (range 0 (count cmap))]
-            (if (= r x)
-              (inc (get (get cmap c) r))
-              (get (get cmap c) r)
-              )
-            )
-          )
-        (get cmap c)
+(defn read-all-coords []
+  (loop [cds [] c (read-coords)]
+    (if (empty? c)
+      cds
+      (recur
+        (conj cds c)
+        (read-coords)
         )
       )
     )
   )
 
+(defn mark-coord [cmap x y]
+  (update cmap y #(update % x inc))
+  )
+
 (defn mark-coords [cmap x1 y1 x2 y2]
   (cond
     (= y1 y2)
-    (loop [cm cmap x (range (min x1 x2) (inc (max x1 x2)))]
-      (if (empty? x)
-        cm
-        (recur
-          (mark-coord cm (first x) y1)
-          (rest x)
-          )
-        )
+    (reduce
+      #(mark-coord %1 %2 y1)
+      cmap
+      (range (min x1 x2) (inc (max x1 x2)))
       )
     (= x1 x2)
-    (loop [cm cmap y (range (min y1 y2) (inc (max y1 y2)))]
-      (if (empty? y)
-        cm
-        (recur
-          (mark-coord cm x1 (first y))
-          (rest y)
-          )
-        )
+    (reduce
+      #(mark-coord %1 x1 %2)
+      cmap
+      (range (min y1 y2) (inc (max y1 y2)))
       )
     :else
     (let [ic (if (< x1 x2) [x1 y1] [x2 y2])
@@ -81,14 +71,10 @@
   )
 
 (def finished-map
-  (loop [cmap (empty-map) coord (read-coords)]
-    (if (empty? coord)
-      cmap
-      (recur
-        (apply (partial mark-coords cmap) coord)
-        (read-coords)
-        )
-      )
+  (reduce
+    #(apply (partial mark-coords %1) %2)
+    (empty-map)
+    (read-all-coords)
     )
   )
 
