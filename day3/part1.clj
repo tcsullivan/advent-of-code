@@ -1,17 +1,16 @@
 (require '[clojure.string :as str])
 
-(println
-  (->> "./in"
-       (slurp)
-       (str/split-lines)
-       (map (fn [l] (map #(if (= % \1) 1 0) l)))
-       (apply (partial map +))
-       (map #(if (< % 500) \1 \0))
-       (str/join)
-       (#(Integer/parseInt % 2))
-       (#(* % (bit-xor % (dec (int (Math/pow 2 12))))))
-       )
-  )
+(->> "./in"
+     (slurp)
+     (str/split-lines)
+     (map (fn [l] (map #(if (= % \1) 1 0) l)))
+     (apply (partial map +))
+     (map #(if (< % 500) \1 \0))
+     (str/join)
+     (#(Integer/parseInt % 2))
+     (#(* % (bit-xor % (dec (int (Math/pow 2 12))))))
+     (println)
+     )
 
 ; (->> input data file name
 ;      read in entire contents
@@ -22,4 +21,5 @@
 ;      join characters into single string
 ;      convert binary string to a number (gamma)
 ;      multiply gamma by its bit-inverse (bit length hard-coded)
+;      print results
 
