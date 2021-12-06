@@ -4,19 +4,14 @@
 ; the previous.
 ;
 
-(loop [inc-count 0
-       prev (Integer/parseInt (read-line))
-       ]
-  (let [input (read-line)]
-    (if (not (empty? input))
-      (let [depth (Integer/parseInt input)]
-        (recur
-          (if (> depth prev) (inc inc-count) inc-count)
-          depth
-          )
-        )
-      (println inc-count)
-      )
-    )
-  )
+(->> (slurp "./in")
+     (clojure.string/split-lines)
+     (map read-string)
+     (reduce
+       #(update [%2 (second %1)] 1 (partial + (if (> %2 (first %1)) 1 0)))
+       [999999 0]
+       )
+     (second)
+     (println)
+     )
 
