@@ -2,7 +2,7 @@
 
 (->> (read-line)
      (#(str/split % #","))
-     (map #(Integer/parseInt %))
+     (map read-string)
      (reduce #(update %1 %2 inc) (vec (repeat 9 0)))
      (iterate
        #(let [nf (conj (vec (rest %)) (first %))]
