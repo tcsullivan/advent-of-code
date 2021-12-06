@@ -27,7 +27,11 @@
   )
 
 (defn mark-coord [cmap x y]
-  (update cmap y #(update % x inc))
+  (update
+    cmap
+    [x y]
+    #(if (nil? %) 0 (inc %))
+    )
   )
 
 (defn mark-coords [cmap x1 y1 x2 y2]
@@ -62,27 +66,18 @@
     )
   )
 
-(defn empty-map []
-  (vec
-    (repeat 1000
-      (vec (repeat 1000 0))
-      )
-    )
-  )
-
 (def finished-map
   (reduce
     #(apply (partial mark-coords %1) %2)
-    (empty-map)
+    {}
     (read-all-coords)
     )
   )
 
 (->> finished-map
-    (flatten)
-    (map dec)
-    (filter pos?)
-    (count)
-    (println)
-    )
+     (vals)
+     (filter pos?)
+     (count)
+     (println)
+     )
 
