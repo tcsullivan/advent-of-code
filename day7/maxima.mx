@@ -1,0 +1,10 @@
+load("descriptive")$
+batchload("./in.mx")$ /* Should define `input` list of numbers. */
+
+calcfuel(pos, distmod) :=
+    lreduce("+", map(lambda([n], distmod(abs(pos - n))), input))$
+
+calcfuel(median(input), lambda([x],x));
+calcfuel(floor(mean(input)), lambda([x], (x*(x+1)/2)));
+calcfuel(floor(mean(input)) + 1, lambda([x], (x*(x+1)/2)));
+
