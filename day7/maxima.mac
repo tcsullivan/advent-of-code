@@ -1,5 +1,5 @@
 load("descriptive")$
-batchload("./in.mx")$ /* Should define `input` list of numbers. */
+load("in.mac")$ /* Should define `input` list of numbers. */
 
 calcfuel(pos, distmod) :=
     lreduce("+", map(lambda([n], distmod(abs(pos - n))), input))$
