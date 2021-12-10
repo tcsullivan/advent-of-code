@@ -3,19 +3,15 @@
 
 (defn check-line [input]
   (loop [in input open '()]
-    (cond
-      (empty? in)
-      (map to-closing open)
-      (and (contains? #{\} \) \] \>} (first in))
-           (not= (to-closing (first open)) (first in)))
-      nil
-      :else
-      (recur
-        (rest in)
-        (if (contains? #{\{ \( \[ \<} (first in))
-          (conj open (first in))
-          (rest open)
-          )))))
+    (if-let [c (first in)]
+      (when (or (nil? (#{\} \) \] \>} c)) (= (first open) c))
+        (recur
+          (rest in)
+          (if-let [op (to-closing c)]
+            (conj open op)
+            (rest open))))
+      open
+      )))
 
 (->> (slurp "./in")
      (clojure.string/split-lines)
