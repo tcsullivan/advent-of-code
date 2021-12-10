@@ -2,7 +2,7 @@
 (def to-score {\) 1 \] 2 \} 3 \> 4})
 
 (defn check-line [input]
-  (loop [open [] in input]
+  (loop [in input open '()]
     (cond
       (empty? in)
       (map to-closing open)
@@ -11,20 +11,18 @@
       nil
       :else
       (recur
-        (if (contains? #{\{ \( \[ \<} (first in))
-          (concat [(first in)] open)
-          (rest open))
         (rest in)
-        ))))
+        (if (contains? #{\{ \( \[ \<} (first in))
+          (conj open (first in))
+          (rest open)
+          )))))
 
 (->> (slurp "./in")
      (clojure.string/split-lines)
-     (mapv vec)
-     (mapv check-line)
+     (map (comp check-line vec))
      (filter some?)
-     (mapv (partial reduce #(+ (* 5 %1) (to-score %2)) 0))
+     (map (partial reduce #(+ (* 5 %1) (to-score %2)) 0))
      (sort)
-     (#(get (vec %) (quot (count %) 2)))
-     (println)
-     )
+     (#(nth % (quot (count %) 2)))
+     (println))
 
