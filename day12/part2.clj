@@ -1,43 +1,48 @@
-(require '[clojure.string :as str])
-
-(def caves (->> (slurp "./in")
-           (str/split-lines)
-           (map #(str/split % #"-"))
-           (map (partial map str))
-           (#(concat % (map reverse %)))
-           ))
-
-(def search-caves
-  (memoize (fn [id]
-    (filter #(= (first %) id) caves))))
-
-(defn get-caves-forward [klst]
-  (let [end (first klst)]
-    (if (str/starts-with? end "end")
-      [klst]
-      (map #(cons (second %) klst)
+    (require '[clojure.string :as str])
+    
+    ; Build list of cave connections:
+    (def caves (->> (slurp "./in")
+               (str/split-lines)
+               (map #(str/split % #"-"))
+               (map (partial map str))
+               (#(concat % (map reverse %)))
+               ))
+    
+    ; Try to help execution speed by memoizing cave searches:
+    (def search-caves
+      (memoize (fn [id]
+        (filter #(= (first %) id) caves))))
+    
+    ; Given current path 'path', return a list of valid paths that branch
+    ; from 'path'. Note, paths are stored in reverse order.
+    (defn get-caves-forward [path]
+      (map #(cons (second %) path)
         (filter
           (fn [cv]
             (and
+              ; Do not return to start
               (not (str/starts-with? (second cv) "start"))
               (or
+                ; Always allow uppercase paths
                 (< (int (first (second cv))) 96)
-                (let [rv (count (filter #(= % (second cv)) klst))
-                      lw (filter #(= (str/lower-case %) %) klst)]
-                  (or (= 0 rv) (< (- (count lw) (count (distinct lw))) 1)))
-                )
-              ))
-          (search-caves end)
-          )))))
-
-(loop [lst (get-caves-forward ["start"]) ms []]
-  (println (count ms))
-  (let [nxt (->> lst
-                 (map get-caves-forward)
-                 (apply concat))
-        mtchs (concat ms (filter #(= (first %) "end") nxt))
-        nxtlst (filter #(not= (first %) "end") nxt)]
-    (if (empty? nxtlst)
-      (println (count mtchs))
-      (recur nxtlst mtchs))))
-
+                (let [lw (filter #(= (str/lower-case %) %) path)]
+                  (or
+                    ; Allow lowercase paths that have never been visited
+                    (= 0 (count (filter #(= % (second cv)) path)))
+                    ; Allow one duplicate if there are none yet
+                    (= 0 (- (count lw) (count (distinct lw)))))))))
+          ; Only work with paths that we connect to
+          (search-caves (first path))
+          )))
+    
+    (loop [paths (get-caves-forward ["start"]) complete-paths []]
+      (let [branches          (->> paths
+                                   (map get-caves-forward)
+                                   (apply concat))
+            complete-branches (concat complete-paths
+                                      (filter #(= (first %) "end") branches))
+            next-paths        (filter #(not= (first %) "end") branches)]
+        (if (empty? next-paths)
+          (println (count complete-branches))
+          (recur next-paths complete-branches))))
+    
