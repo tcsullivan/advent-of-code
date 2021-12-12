@@ -1,39 +1,41 @@
-(defonce input (->> (slurp "./in")
-                    (clojure.string/split-lines)
-                    (map (partial map #(- (int %) 48)))
-                    (atom)
-                    ))
-(defonce blinks (atom 0))
+(defn get-adj [in y x]
+  (filter
+    #(some? (get-in in %))
+    [[(dec y) (dec x)] [(dec y) x] [(dec y) (inc x)]
+     [y (dec x)] [y (inc x)]
+     [(inc y) (dec x)] [(inc y) x] [(inc y) (inc x)]]
+    ))
 
-(defn get-adj [y x]
-  (filter #(some? (get-in @input %))
-         [[(dec y) (dec x)] [(dec y) x] [(dec y) (inc x)]
-          [y (dec x)] [y (inc x)]
-          [(inc y) (dec x)] [(inc y) x] [(inc y) (inc x)]]
-         ))
+(defn apply-incs [in] (mapv (partial mapv inc) in))
 
-(defn apply-incs [] (mapv (partial mapv inc) @input))
-
-(defn next-step []
-  (reset! input (apply-incs))
-  (loop [y 0 x 0]
+(defn next-step [indata]
+  (loop [in (apply-incs (indata :grid)) bl (indata :blinks) y 0 x 0]
     (cond
-      (> (get-in @input [y x]) 9)
+      (> (get-in in [y x]) 9)
       (do
-        (doseq [p (get-adj y x)]
-          (reset! input (update-in @input p #(if (pos? %) (inc %) %))))
-        (reset! input (update-in @input [y x] (fn [x] 0)))
-        (reset! blinks (inc @blinks))
-        (recur 0 0))
-      (< x (dec (count (first @input))))
-      (recur y (inc x))
-      (< y (dec (count @input)))
-      (recur (inc y) 0)
+        (recur
+          (-> (reduce
+                (fn [i n] (update-in i n #(cond-> % (pos? %) inc)))
+                in
+                (get-adj in y x))
+              (update-in [y x] #(do % 0)))
+          (inc bl)
+          0 0))
+      (< x (dec (count (first in))))
+      (recur in bl y (inc x))
+      (< y (dec (count in)))
+      (recur in bl (inc y) 0)
+      :else
+      {:grid in :blinks bl}
       )
     )
-  @input
   )
 
-(dotimes [n 100] (next-step))
-(println @blinks)
+(->> (slurp "./in")
+     (clojure.string/split-lines)
+     (map (partial map #(- (int %) 48)))
+     (assoc {} :blinks 0 :grid)
+     (iterate next-step)
+     (#(nth % 100))
+     (#(println (% :blinks))))
 
