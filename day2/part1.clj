@@ -1,4 +1,4 @@
-; Day 2, part 2
+; Day 2, part 1
 ; Read a list of instructions from stdin:
 ;   "down X" increases depth number by X,
 ;   "up X" decreases depth by X,
@@ -8,24 +8,19 @@
 
 (require '[clojure.string :as str])
 
-(loop [data {:xpos 0 :depth 0}]
-  (let [input (read-line)]
-    (if (empty? input)
-      (println (apply * (vals data)))
-      (let [ins (str/split input #" ")
-            n (Integer/parseInt (second ins))
-            ]
-        (recur
-          (apply (partial update-in data)
-            (case (first ins)
-              "forward" [[:xpos] + n]
-              "up" [[:depth] - n]
-              "down" [[:depth] + n]
-              )
-            )
-          )
-        )
-      )
-    )
-  )
+(println
+  (keduce *
+    (vals
+      (reduce
+        #(case (first %2)
+           "forward" (update %1 :xpos  + (second %2))
+           "up"      (update %1 :depth - (second %2))
+           "down"    (update %1 :depth + (second %2))
+           )
+        {:xpos 0 :depth 0}
+        (->> (slurp "./in")
+             str/split-lines
+             (map #(str/split % #" "))
+             (map #(update % 1 read-string))
+             )))))
 
