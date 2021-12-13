@@ -9,7 +9,7 @@
 (require '[clojure.string :as str])
 
 (println
-  (keduce *
+  (reduce *
     (vals
       (reduce
         #(case (first %2)
