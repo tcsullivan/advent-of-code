@@ -4,14 +4,12 @@
 ; the previous.
 ;
 
-(->> (slurp "./in")
-     (clojure.string/split-lines)
-     (map read-string)
+(as-> (slurp "./in") $
+     (clojure.string/split-lines $)
+     (map read-string $)
      (reduce
-       #(update [%2 (second %1)] 1 (partial + (if (> %2 (first %1)) 1 0)))
-       [999999 0]
-       )
-     (second)
-     (println)
-     )
+       #(cond-> (assoc %1 0 %2) (> %2 (first %1)) (update 1 inc))
+       [(first $) 0]
+       (rest $))
+     (println (second $)))
 

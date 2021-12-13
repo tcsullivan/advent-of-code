@@ -5,25 +5,11 @@
 ; the previous number, and the next number.
 ;
 
-(loop [inc-count 0
-       buff (repeat 4 (Integer/parseInt (read-line)))
-       ]
-  (let [next (read-line)
-        new-count (if (> (last buff) (first buff))
-                    (inc inc-count)
-                    inc-count
-                    )
-        ]
-    (if (empty? next)
-      (println new-count)
-      (recur
-        new-count
-        (concat
-          (rest buff)
-          [(Integer/parseInt next)]
-          )
-        )
-      )
-    )
-  )
+(let [input (->> (slurp "./in")
+                 clojure.string/split-lines
+                 (mapv read-string))]
+  (println
+    (count
+      (filter #(< (get input %) (get input (+ % 3)))
+        (range 0 (- (count input) 3))))))
 
