@@ -2,40 +2,29 @@
 
 (def input (->> (slurp "./in")
                 (str/split-lines)
-                (split-with not-empty)))
-(def points (->> (first input)
-                 (map #(str/split % #","))
-                 (map (partial map read-string))
-                 (set)))
-(def folds (->> (rest (second input))
-                (map #(str/split % #"="))
-                (map #(do [(last (first %)) (read-string (second %))]))))
+                (split-with not-empty)
+                ((juxt
+                  (fn [lst]
+                    (reduce
+                      #(conj %1 (mapv read-string (str/split %2 #",")))
+                      #{} (first lst)))
+                  (fn [lst]
+                    (->> (second lst)
+                         (drop 1)
+                         (map #(-> %
+                                   (str/split #"=")
+                                   (update 0 (comp {\x 0 \y 1} last))
+                                   (update 1 read-string)))
+                         (first)
+                         ))))))
 
-(loop [fds (take 1 folds) pts points]
-  (if (empty? fds)
-    (println (count pts))
-    (recur
-      (rest fds)
-      (let [ins (first fds) chg (second ins)]
-        (if (= \x (first ins))
-          (reduce
-            #(conj %1
-               (if (< (first %2) chg)
-                 %2
-                 (seq [(- (first %2) (* 2 (- (first %2) chg))) (second %2)])))
-            #{}
-            pts)
-          (reduce
-            #(conj %1
-               (if (< (second %2) chg)
-                 %2
-                 (seq [(first %2) (- (second %2) (* 2 (- (second %2) chg)))])
-                 ))
-            #{}
-            pts)
-          )
-        )
-      )
-    )
-  )
+(defn fold-point [idx chg pt]
+  (cond-> pt (> (get pt idx) chg) (update idx #(- % (* 2 (- % chg))))))
+
+(let [instruction (second input)]
+  (->> (first input)
+       (map (partial fold-point (first instruction) (second instruction)))
+       (distinct)
+       (count)
+       (println)))
 
