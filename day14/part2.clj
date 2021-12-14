@@ -1,7 +1,6 @@
 (require '[clojure.string :as str])
-(require '[clojure.core.reducers :as r])
 
-(def input (->> (slurp "./in")
+(def input (->> (slurp "./in2")
                 str/split-lines
                 ((juxt
                    first
@@ -13,28 +12,41 @@
                        (apply (partial assoc {}))
                        ))))))
 
-(defn handle-pair [pair steps]
-  (if (= 0 steps)
-    (frequencies (rest pair))
-    (let [ins ((second input) pair)
-          p1  (handle-pair (str/join [(first pair) ins]) (dec steps))
-          p2  (handle-pair (str/join [ins (second pair)]) (dec steps))]
-      (reduce
-        (fn [r p] (update r (key p) #(if (nil? %) (val p) (+ (val p) %))))
-        p1 p2)
-      )))
-
-(println
+(def blank-map
   (reduce
-    (fn [tot pair]
-      (let [freqs (handle-pair pair 23)]
-        (println "Finished pair " pair)
-        (reduce
-          (fn [r p] (update r (key p) #(if (nil? %) (val p) (+ (val p) %))))
-          tot
-          freqs)))
+    #(assoc %1 %2 0)
     {}
-    (for [i (range 0 (dec (count (first input))))]
-      (subs (first input) i (+ i 2)))
+    (keys (second input))))
+
+(defn grow-polymer [polymer insertion-rules]
+  (reduce
+    (fn [res pair]
+      (let [pk (key pair)
+            p1 (str/join [(first pk) (insertion-rules pk)])
+            p2 (str/join [(insertion-rules pk) (second pk)])]
+        (-> res (update p1 + (val pair)) (update p2 + (val pair)))
+        ))
+    blank-map
+    (filter #(pos? (val %)) polymer)
     ))
+
+(def growth-seq
+  (iterate
+    #(grow-polymer % (second input))
+    (reduce
+      #(update %1 %2 inc)
+      blank-map
+      (for [i (range 0 (dec (count (first input))))]
+              (subs (first input) i (+ i 2))))))
+
+(let [results
+  (map #(Math/ceil (/ % 2))
+    (vals
+      (reduce
+        (fn [r p] (-> r
+                      (update (first (key p)) #(if (nil? %) (val p) (+ % (val p))))
+                      (update (second (key p)) #(if (nil? %) (val p) (+ % (val p))))))
+        {}
+        (nth growth-seq 40))))]
+  (println (- (apply max results) (apply min results))))
 
