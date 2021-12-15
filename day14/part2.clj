@@ -10,8 +10,8 @@
                      (->> lines
                        (drop 2)
                        (map #(str/split % #" -> "))
-                       (map (fn [[pair ltr]]
-                              {pair (map str/join [[(first pair) ltr] [ltr (second pair)]])}))
+                       (map (fn [[[a b] c]]
+                         {(str/join [a b]) (map str/join [[a c] [c b]])}))
                        (reduce into)
                        ))))))
 
@@ -28,13 +28,11 @@
   (iterate #(grow-polymer % (second input))
            (reduce #(update %1 %2 inc) blank-map (first input))))
 
-(let [polymer (nth growth-seq 40)  
-      results (filter pos?
-                (map #(Math/ceil (/ % 2))
-                  (vals
-                    (reduce
-                      #(let [k (key %2) v (val %2)] (-> %1 (update (first k) + v) (update (second k) + v)))
-                      (zipmap (flatten (map (partial split-at 1) (keys polymer))) (repeat 0))
-                      polymer))))]
-  (println (- (apply max results) (apply min results))))
+(let [final-polymer (nth growth-seq 40) 
+      letter-counts (reduce
+                      (fn [r [k v]] (-> r (update (first k) + v) (update (second k) + v)))
+                      (zipmap (str/join (keys final-polymer)) (repeat 0))
+                      final-polymer)
+      unique-counts (filter pos? (map #(Math/ceil (/ (val %) 2)) letter-counts))]
+  (println (- (apply max unique-counts) (apply min unique-counts))))
 
