@@ -1,52 +1,40 @@
 (require '[clojure.string :as str])
 
-(def input (->> (slurp "./in2")
+(def input (->> (slurp "./in")
                 str/split-lines
                 ((juxt
-                   first
+                   #(let [init-polymer (first %)]
+                      (for [i (range 0 (dec (count init-polymer)))]
+                        (subs init-polymer i (+ i 2))))
                    (fn [lines]
                      (->> lines
                        (drop 2)
                        (map #(str/split % #" -> "))
-                       (flatten)
-                       (apply (partial assoc {}))
+                       (map (fn [[pair ltr]]
+                              {pair (map str/join [[(first pair) ltr] [ltr (second pair)]])}))
+                       (reduce into)
                        ))))))
 
-(def blank-map
-  (reduce
-    #(assoc %1 %2 0)
-    {}
-    (keys (second input))))
+(def blank-map (zipmap (keys (second input)) (repeat 0)))
 
 (defn grow-polymer [polymer insertion-rules]
   (reduce
-    (fn [res pair]
-      (let [pk (key pair)
-            p1 (str/join [(first pk) (insertion-rules pk)])
-            p2 (str/join [(insertion-rules pk) (second pk)])]
-        (-> res (update p1 + (val pair)) (update p2 + (val pair)))
-        ))
+    #(let [[p1 p2] (insertion-rules (key %2)) v (val %2)]
+       (-> %1 (update p1 + v) (update p2 + v)))
     blank-map
-    (filter #(pos? (val %)) polymer)
-    ))
+    (filter (comp pos? val) polymer)))
 
 (def growth-seq
-  (iterate
-    #(grow-polymer % (second input))
-    (reduce
-      #(update %1 %2 inc)
-      blank-map
-      (for [i (range 0 (dec (count (first input))))]
-              (subs (first input) i (+ i 2))))))
+  (iterate #(grow-polymer % (second input))
+           (reduce #(update %1 %2 inc) blank-map (first input))))
 
-(let [results
-  (map #(Math/ceil (/ % 2))
-    (vals
-      (reduce
-        (fn [r p] (-> r
-                      (update (first (key p)) #(if (nil? %) (val p) (+ % (val p))))
-                      (update (second (key p)) #(if (nil? %) (val p) (+ % (val p))))))
-        {}
-        (nth growth-seq 40))))]
+(let [polymer (nth growth-seq 40)  
+      results (filter pos?
+                (map #(Math/ceil (/ % 2))
+                  (vals
+                    (reduce
+                      #(let [k (key %2) v (val %2)] (-> %1 (update (first k) + v) (update (second k) + v)))
+                      (zipmap (flatten (map (partial split-at 1) (keys polymer))) (repeat 0))
+                      polymer))))]
   (println (- (apply max results) (apply min results))))
 
