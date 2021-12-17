@@ -9,14 +9,12 @@
   (and (>= x tbx) (<= x tex) (<= y tby) (>= y tey)))
 
 (defn apply-velocity [[[px py] [vx vy]]]
-  [[(+ px vx) (+ py vy)] [(if (pos? vx) (dec vx) 0) (dec vy)]])
-
-(defn path-builder [vel] (iterate apply-velocity [initial-pos vel]))
+  [[(+ px vx) (+ py vy)] [(cond-> vx (pos? vx) dec) (dec vy)]])
 
 (defn build-path [target vel]
-  (->> (path-builder vel)
+  (->> (iterate apply-velocity [initial-pos vel])
        (take-while (comp not (partial beyond-target? target) first))
-       (map first)))
+       (mapv first)))
 
 (defn path-height [target vel]
   (let [path (build-path target vel)]
@@ -28,17 +26,12 @@
 
 (let [[tb te]      target-area
       lowest-x     (second (last (take-while #(< (first %) (first tb)) tnum-seq)))
-      lowest-y     (second te)
-      valid-paths  (filter (comp some? first)
-                    (for [y (range lowest-y 2000)]
-                      [(path-height target-area [lowest-x y]) y]))
-      highest-path (reduce #(if (> (first %1) (first %2)) %1 %2) valid-paths)]
-  (println (first highest-path))
+      highest-y    (dec (Math/abs (second te)))]
   (println
+    (path-height target-area [lowest-x highest-y])
     (count
       (filter (partial within-target? target-area)
-        (let [ys [(second te) (second highest-path)]]
-          (for [x (range lowest-x (inc (first te)))
-                y (range (apply min ys) (inc (apply max ys)))]
-            (last (build-path target-area [x y]))))))))
+        (for [x (range lowest-x (inc (first te)))
+              y (range (second te) (inc highest-y))]
+          (last (build-path target-area [x y])))))))
 
