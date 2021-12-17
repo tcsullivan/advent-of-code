@@ -40,14 +40,10 @@
     (if (every? #(= \0 %) data)
       ['() vcnt]
       (do
-        (println "Version:          " version)
         (if-let [value (take-literal-value data)]
-          (do
-            (println "Value:" (first value))
-            [(second value) (+ vcnt version)])
+          [(second value) (+ vcnt version)]
           (do
             (let [info (take-operator (drop 3 data))]
-              (println "Subpacket:")
               (if (= :bits (get info 2))
                 (loop [inpt [(subs (first info) 0 (get info 1)) (+ vcnt version)]]
                   (if (empty? (first inpt))
@@ -67,5 +63,5 @@
                    (process-packet))]
   (if (not (empty? (first packet)))
     (recur (process-packet packet))
-    (println packet)))
+    (println (second packet))))
 
