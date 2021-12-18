@@ -87,10 +87,8 @@
 (println (snailfish-solve input))
 
 ; Part 2
-(->> (let [input-set (set input)]
-       (for [in input in2 (set/difference input-set (set [in]))]
-         [in in2]))
-     (into [])
+(->> (for [in input in2 input :when (not= in in2)] [in in2])
+     (vec)
      (r/map snailfish-solve)
      (r/fold (r/monoid max (constantly 0)))
      (println))

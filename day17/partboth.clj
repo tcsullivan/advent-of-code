@@ -1,5 +1,8 @@
-(def target-area [[169 -68] [206 -108]])
-;(def target-area [[20 -5] [30 -10]])
+(require '[clojure.core.reducers :as r])
+
+;(def target-area [[169 -68] [206 -108]])
+(def target-area [[20000 -5000] [30000 -10000]])
+;(def target-area [[2000 -500] [3000 -1000]])
 (def initial-pos [0 0])
 
 (defn beyond-target? [[[tbx tby] [tex tey]] [x y]]
@@ -11,15 +14,16 @@
 (defn apply-velocity [[[px py] [vx vy]]]
   [[(+ px vx) (+ py vy)] [(cond-> vx (pos? vx) dec) (dec vy)]])
 
+(defn take-last-while [pred coll]
+  (loop [v (first coll) r (rest coll)]
+    (if (not (pred (first r)))
+      v
+      (recur (first r) (rest r)))))
+
 (defn build-path [target vel]
   (->> (iterate apply-velocity [initial-pos vel])
-       (take-while (comp not (partial beyond-target? target) first))
-       (mapv first)))
-
-(defn path-height [target vel]
-  (let [path (build-path target vel)]
-    (when (within-target? target (last path))
-      (apply max (map second path)))))
+       (take-last-while (comp not (partial beyond-target? target) first))
+       (first)))
 
 ; Used to determine best x velocity for highest path
 (def tnum-seq (iterate #(do [(apply + %) (inc (second %))]) [0 1]))
@@ -27,11 +31,24 @@
 (let [[tb te]      target-area
       lowest-x     (second (last (take-while #(< (first %) (first tb)) tnum-seq)))
       highest-y    (dec (Math/abs (second te)))]
-  (println
-    (path-height target-area [lowest-x highest-y])
-    (count
-      (filter (partial within-target? target-area)
-        (for [x (range lowest-x (inc (first te)))
-              y (range (second te) (inc highest-y))]
-          (last (build-path target-area [x y])))))))
+  (->> (for [y (range (second te) (inc highest-y))
+             x (range lowest-x (inc (first te)))] [x y])
+       (#(do (println "Generated xy pairs...") %))
+       (#(do (println "Total: " (* (- highest-y (second te)) (- (inc highest-y) lowest-x))) %))
+       (partition 50000)
+       (#(do (println "Prepared partitions...") %))
+       (reduce
+          (fn [sum nlst]
+            (println sum)
+            (+ sum
+              (r/fold +
+                (r/monoid
+                  (fn [tot xy]
+                    (cond-> tot
+                      (within-target? target-area (build-path target-area xy))
+                      inc))
+                  (constantly 0))
+                (into [] nlst))))
+           0)
+       (println)))
 
