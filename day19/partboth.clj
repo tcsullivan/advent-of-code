@@ -1,79 +1,56 @@
 (require '[clojure.core.reducers :as r])
 (require 'clojure.string)
 
+(def orientation-vectors
+  [[[1 0 0]  [0 1 0]  [0 0 1]]
+   [[1 0 0]  [0 0 -1] [0 1 0]]
+   [[1 0 0]  [0 -1 0] [0 0 -1]]
+   [[1 0 0]  [0 0 1]  [0 -1 0]]
+   [[-1 0 0] [0 -1 0] [0 0 1]]
+   [[-1 0 0] [0 0 -1] [0 -1 0]]
+   [[-1 0 0] [0 1 0]  [0 0 -1]]
+   [[-1 0 0] [0 0 1]  [0 1 0]]
+   [[0 0 -1] [1 0 0]  [0 -1 0]]
+   [[0 1 0]  [1 0 0]  [0 0 -1]]
+   [[0 0 1]  [1 0 0]  [0 1 0]]
+   [[0 -1 0] [1 0 0]  [0 0 1]]
+   [[0 0 1]  [-1 0 0] [0 -1 0]]
+   [[0 1 0]  [-1 0 0] [0 0 1]]
+   [[0 0 -1] [-1 0 0] [0 1 0]]
+   [[0 -1 0] [-1 0 0] [0 0 -1]]
+   [[0 -1 0] [0 0 -1] [1 0 0]]
+   [[0 0 1]  [0 -1 0] [1 0 0]]
+   [[0 1 0]  [0 0 1]  [1 0 0]]
+   [[0 0 -1] [0 1 0]  [1 0 0]]
+   [[0 0 1]  [0 1 0]  [-1 0 0]]
+   [[0 -1 0] [0 0 1]  [-1 0 0]]
+   [[0 0 -1] [0 -1 0] [-1 0 0]]
+   [[0 1 0]  [0 0 -1] [-1 0 0]]])
+
 (defn build-scanner-reports
-  "Splits slurped, split-lines'd input by scanner."
+  "Splits slurped, split-line'd input by scanner."
   [input-lines]
   (loop [scanners [] rem-input input-lines]
     (if (empty? rem-input)
       scanners
       (let [[this nxt] (split-with (comp not empty?) rem-input)]
-        (recur
-          (->> (rest this)
-               (map #(read-string (clojure.string/join ["[" % "]"])))
-               (conj scanners))
-          (rest nxt))))))
+        (recur (->> (rest this)
+                    (map #(read-string (clojure.string/join ["[" % "]"])))
+                    (conj scanners))
+               (rest nxt))))))
 
-(defn point-add      [[a b c] [d e f]] [(+ a d) (+ b e) (+ c f)])
+(defn point-add [[a b c] [d e f]] [(+ a d) (+ b e) (+ c f)])
 
 (defn orient [[x y z] [[a b c] [d e f] [g h i]]]
   [(+ (* x a) (* y d) (* z g)) (+ (* x b) (* y e) (* z h)) (+ (* x c) (* y f) (* z i))])
 
 (defn scanner-orientation [report or-index]
-  (let [or-vec [[[1 0 0]  [0 1 0]  [0 0 1]]
-                [[1 0 0]  [0 0 -1] [0 1 0]]
-                [[1 0 0]  [0 -1 0] [0 0 -1]]
-                [[1 0 0]  [0 0 1]  [0 -1 0]]
-                [[-1 0 0] [0 -1 0] [0 0 1]]
-                [[-1 0 0] [0 0 -1] [0 -1 0]]
-                [[-1 0 0] [0 1 0]  [0 0 -1]]
-                [[-1 0 0] [0 0 1]  [0 1 0]]
-                [[0 0 -1] [1 0 0]  [0 -1 0]]
-                [[0 1 0]  [1 0 0]  [0 0 -1]]
-                [[0 0 1]  [1 0 0]  [0 1 0]]
-                [[0 -1 0] [1 0 0]  [0 0 1]]
-                [[0 0 1]  [-1 0 0] [0 -1 0]]
-                [[0 1 0]  [-1 0 0] [0 0 1]]
-                [[0 0 -1] [-1 0 0] [0 1 0]]
-                [[0 -1 0] [-1 0 0] [0 0 -1]]
-                [[0 -1 0] [0 0 -1] [1 0 0]]
-                [[0 0 1]  [0 -1 0] [1 0 0]]
-                [[0 1 0]  [0 0 1]  [1 0 0]]
-                [[0 0 -1] [0 1 0]  [1 0 0]]
-                [[0 0 1]  [0 1 0]  [-1 0 0]]
-                [[0 -1 0] [0 0 1]  [-1 0 0]]
-                [[0 0 -1] [0 -1 0] [-1 0 0]]
-                [[0 1 0]  [0 0 -1] [-1 0 0]]]
-        chosen (get or-vec or-index)]
-    (map #(orient (map - %) chosen) report)))
+  (map #(orient (map - %) (get orientation-vectors or-index)) report))
 
 (defn scanner-orientations
   "Builds list of scanner reports adjusted for all possible orientations."
   [report]
-  (for [or-vec [[[1 0 0]  [0 1 0]  [0 0 1]]
-                [[1 0 0]  [0 0 -1] [0 1 0]]
-                [[1 0 0]  [0 -1 0] [0 0 -1]]
-                [[1 0 0]  [0 0 1]  [0 -1 0]]
-                [[-1 0 0] [0 -1 0] [0 0 1]]
-                [[-1 0 0] [0 0 -1] [0 -1 0]]
-                [[-1 0 0] [0 1 0]  [0 0 -1]]
-                [[-1 0 0] [0 0 1]  [0 1 0]]
-                [[0 0 -1] [1 0 0]  [0 -1 0]]
-                [[0 1 0]  [1 0 0]  [0 0 -1]]
-                [[0 0 1]  [1 0 0]  [0 1 0]]
-                [[0 -1 0] [1 0 0]  [0 0 1]]
-                [[0 0 1]  [-1 0 0] [0 -1 0]]
-                [[0 1 0]  [-1 0 0] [0 0 1]]
-                [[0 0 -1] [-1 0 0] [0 1 0]]
-                [[0 -1 0] [-1 0 0] [0 0 -1]]
-                [[0 -1 0] [0 0 -1] [1 0 0]]
-                [[0 0 1]  [0 -1 0] [1 0 0]]
-                [[0 1 0]  [0 0 1]  [1 0 0]]
-                [[0 0 -1] [0 1 0]  [1 0 0]]
-                [[0 0 1]  [0 1 0]  [-1 0 0]]
-                [[0 -1 0] [0 0 1]  [-1 0 0]]
-                [[0 0 -1] [0 -1 0] [-1 0 0]]
-                [[0 1 0]  [0 0 -1] [-1 0 0]]]]
+  (for [or-vec orientation-vectors]
     (map #(orient (map - %) or-vec) report)))
 
 (defn scanner-build-potential-links
@@ -88,68 +65,31 @@
 (defn scanner-find-connection
   "Attempt to determine if s1 and s2 are linked through common beacons."
   [s1 s2]
-  (let [potential-links (as-> (scanner-build-potential-links s1 s2) $
-                              (for [i (range 0 (count $))] [i (nth $ i)]))]
-    (filter some?
-      (map
-        (fn [[orientation link]]
-          (let [distinct-points (into [] (distinct (reduce concat link)))
-                link-results
-                (into '()
-                  (r/fold (quot (count distinct-points) 16) r/cat
-                    (fn [pcoll point]
-                      (if-not (empty? pcoll)
-                        pcoll
-                        (let [occurrance-count (reduce
-                                                 #(cond-> %1
-                                                    (not (empty? (filter (partial = point) %2)))
-                                                    inc)
-                                                 1 link)]
-                          (cond-> pcoll (> occurrance-count 11) (r/append! point)))))
-                    distinct-points))]
-            (when (not (empty? link-results))
-              [orientation (first link-results)])))
-        (into [] potential-links)))))
+  (loop [potential-links (as-> (scanner-build-potential-links s1 s2) $
+                               (for [i (range 0 (count $))] [i (nth $ i)])
+                               (into [] $))]
+    (when-let [[orientation link] (first potential-links)]
+      (if-let [match (first (drop-while #(< (val %) 12) (frequencies (reduce concat link))))]
+        [orientation (key match)]
+        (recur (rest potential-links))))))
 
 (defn scanner-merge
   "Merges the report of linked scanner s2 into scanner s1."
   [s1 s2 s2-or s2-coord]
-  (let [s2-ored (scanner-orientation s2 s2-or)]
-    (distinct (concat s1 (map #(point-add s2-coord (map - %)) s2-ored)))))
-
-(def reports (->> (slurp "./in")
-                  (clojure.string/split-lines)
-                  (build-scanner-reports)
-                  (vec)))
+  (vec (into (set s1) (map #(point-add s2-coord (map - %)) (scanner-orientation s2 s2-or)))))
 
 (let [[beacon-count scanner-coords]
-      (loop [new-reps reports sc-coords '([0 0 0]) i (range 1 (count reports))]
-        (println "Trying" (first i) (map count new-reps))
-        (if (nil? (first i))
-          ; reached end (uh oh?)
-          [(count new-reps) sc-coords]
-          ; scan for links to report i
-          (let [found (scanner-find-connection (first new-reps)
-                                               (get new-reps (first i)))]
-            (if (empty? found)
-              ; no match, move to next i
-              (recur new-reps sc-coords (rest i))
-              (do (println "  Found" found)
-              (recur
-                (-> new-reps
-                  ; replace index zero with merged report
-                  (assoc 0 (scanner-merge (first new-reps)
-                                          (get new-reps (first i))
-                                          (first (first found))
-                                          (second (first found))))
-                  ; remove report we pulled from
-                  (#(concat (subvec % 0 (first i))
-                            (subvec % (inc (first i)))))
-                  ; back to vector
-                  (vec))
-                (conj sc-coords (second (first found)))
-                ; begin new scan
-                (range 1 (count new-reps))))))))]
+      (loop [new-reps  (->> (slurp "./in") clojure.string/split-lines build-scanner-reports)
+             sc-coords '([0 0 0])
+             next-reps (rest new-reps)]
+        (if-let [next-rep (first next-reps)]
+          (if-let [[found-or found-coord] (scanner-find-connection (first new-reps) next-rep)]
+            (let [new-base    (scanner-merge (first new-reps) next-rep found-or found-coord)
+                  newest-reps (->> (assoc new-reps 0 new-base) (filterv (partial not= next-rep)))]
+              (println "found" found-coord)
+              (recur newest-reps (conj sc-coords found-coord) (rest newest-reps)))
+            (recur new-reps sc-coords (rest next-reps)))
+          [(count (first new-reps)) sc-coords]))]
   (println "Part 1:" beacon-count)
   (println "Part 2:"
     (apply max
