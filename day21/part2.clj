@@ -1,4 +1,11 @@
-(def rolls {3 1 4 3 5 6 6 7 7 6 8 3 9 1})
+(defn dice-probability-spread [sides rolls]
+  (let [sr (range 1 (inc sides))]
+    (->> sr
+         (iterate #(flatten (for [i sr] (map (partial + i) %))))
+         (drop (dec rolls))
+         ((comp frequencies first)))))
+
+(def rolls (dice-probability-spread 3 3))
 
 (defn advance-pos [pos roll] (let [n (+ pos roll)] (if (> n 10) (- n 10) n)))
 
@@ -12,7 +19,7 @@
 
 (defonce wins (atom [0 0]))
 
-(loop [turn 0 states {{:pos1 10 :score1 0 :pos2 1 :score2 0} 1}]
+(loop [turn 0 states {{:pos1 4 :score1 0 :pos2 8 :score2 0} 1}]
   (if (empty? states)
     (println (apply max @wins))
     (recur
@@ -21,7 +28,7 @@
         #(let [kvp (first %2)]
            (if (< ((key kvp) (if (= 0 turn) :score1 :score2)) 21)
              (if (contains? %1 (key kvp))
-               (update %1 (key kvp) + (val kvp))
+               (update %1 (key kvp) +' (val kvp))
                (conj %1 kvp))
              (do (swap! wins update turn +' (val kvp)) %1)))
         {}
