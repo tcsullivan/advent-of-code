@@ -22,25 +22,29 @@
    nil
    nil])
 
-(defn do-slot [[field q s] idx]
+(defn do-slot [[field energy] idx]
   (let [slot (get field idx)]
     (cond
       ; Moving value out of a room
-      (and (seq? slot) (not (empty? slot)) (not (every? #(= % ({2 :a 4 :b 6 :c 8 :d} idx)) slot)))
+      (and (seq? slot)
+           (not (empty? slot))
+           (not (every? #(= % ({2 :a 4 :b 6 :c 8 :d} idx)) slot)))
       (let [open-slots
             (filterv
               #(contains? #{0 1 3 5 7 9 10} %)
               (concat
-                (for [i (reverse (range 0 idx)) :while (or (nil? (get field i)) (seq? (get field i)))] i)
-                (for [i (range idx (count field)) :while (or (nil? (get field i)) (seq? (get field i)))] i)))]
+                (for [i (reverse (range 0 idx))
+                      :while (or (nil? (get field i)) (seq? (get field i)))] i)
+                (for [i (range idx (count field))
+                      :while (or (nil? (get field i)) (seq? (get field i)))] i)))]
         (when-not (empty? open-slots)
           (map
             (fn [os]
               [(-> field
                    (assoc os (first slot))
                    (update idx rest))
-               (conj q [idx os])
-               (+ s (* ({:a 1 :b 10 :c 100 :d 1000} (first slot)) (+ (inc (- 4 (count slot))) (Math/abs (- os idx)))))])
+               (+ energy (* ({:a 1 :b 10 :c 100 :d 1000} (first slot))
+                            (+ (inc (- 4 (count slot))) (Math/abs (- os idx)))))])
             open-slots)))
       ; Moving value into a room
       (and (not (seq? slot)) (some? slot))
@@ -52,8 +56,8 @@
               [(-> field
                    (assoc idx nil)
                    (update our-room conj slot))
-               (conj q [idx our-room])
-               (+ s (* ({:a 1 :b 10 :c 100 :d 1000} slot) (+ (Math/abs (- idx our-room)) (- 4 (count room)))))])))))))
+               (+ energy (* ({:a 1 :b 10 :c 100 :d 1000} slot)
+                            (+ (Math/abs (- idx our-room)) (- 4 (count room)))))])))))))
 
 (defn winner? [[field q s]]
   (= field
@@ -72,7 +76,6 @@
 (defn do-turns [fields]
   (into []
     (r/fold
-      1024
       r/cat
       #(if-let [t (apply do-slot %2)]
          (if (seq? t)
@@ -85,24 +88,24 @@
 
 (defn play-games [turns tc]
   (println "Games:" (count turns) "Turn:" tc)
-  (if (< 500000 (count turns))
+  (if (< 250000 (count turns))
     (do
       (println "Splitting...")
-      (doseq [p (partition 100000 turns)
-              :let [r (play-games (into [] p) tc)]] nil))
+      (doseq [p (partition 50000 turns)]
+        (play-games (into [] p) tc)))
     (do
       (let [new-turns (do-turns turns)
             winners (filter winner? new-turns)]
         (if (pos? (count winners))
           (do
             (println "Winner! Turns:" tc)
-            (swap! wins #(reduce conj % (map last winners))))
+            (swap! wins #(reduce conj % (map second winners))))
           (when (pos? (count new-turns))
             (recur new-turns (inc tc))))))))
 
 (defn -main
   "I don't do a whole lot ... yet."
   [& args]
-  (play-games [[init-field [] 0]] 0)
+  (play-games [[init-field 0]] 0)
   (println (first (sort @wins))))
 
