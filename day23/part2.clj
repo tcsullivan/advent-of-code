@@ -1,12 +1,3 @@
-;
-; Place in new leiningen 'app' template project
-;
-; Run with `java -Xmx8G -jar ...`
-;
-
-(ns hah.core
-  (:gen-class))
-
 (require '[clojure.core.reducers :as r])
 
 (def init-field
@@ -84,28 +75,16 @@
          %1)
       (into [] (for [f fields i (range 0 11)] [f i])))))
 
-(def wins (atom #{}))
-
 (defn play-games [turns tc]
   (println "Games:" (count turns) "Turn:" tc)
-  (if (< 250000 (count turns))
-    (do
-      (println "Splitting...")
-      (doseq [p (partition 50000 turns)]
-        (play-games (into #{} p) tc)))
-    (do
-      (let [new-turns (do-turns turns)
-            winners (filter winner? new-turns)]
-        (if (pos? (count winners))
-          (do
-            (println "Winner! Turns:" tc)
-            (swap! wins #(reduce conj % (map second winners))))
-          (when (pos? (count new-turns))
-            (recur new-turns (inc tc))))))))
+  (let [new-turns (do-turns turns)
+        winners (filter winner? new-turns)]
+    (if (seq winners)
+      (map second winners)
+      (recur new-turns (inc tc)))))
 
-(defn -main
-  "I don't do a whole lot ... yet."
-  [& args]
-  (play-games #{[init-field 0]} 0)
-  (println (first (sort @wins))))
+(->> (play-games #{[init-field 0]} 0)
+     sort
+     first
+     ((partial println "Lowest energy:")))
 
