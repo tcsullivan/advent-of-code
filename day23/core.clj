@@ -74,7 +74,7 @@
      nil]))
 
 (defn do-turns [fields]
-  (into []
+  (into #{}
     (r/fold
       r/cat
       #(if-let [t (apply do-slot %2)]
@@ -92,7 +92,7 @@
     (do
       (println "Splitting...")
       (doseq [p (partition 50000 turns)]
-        (play-games (into [] p) tc)))
+        (play-games (into #{} p) tc)))
     (do
       (let [new-turns (do-turns turns)
             winners (filter winner? new-turns)]
@@ -106,6 +106,6 @@
 (defn -main
   "I don't do a whole lot ... yet."
   [& args]
-  (play-games [[init-field 0]] 0)
+  (play-games #{[init-field 0]} 0)
   (println (first (sort @wins))))
 
