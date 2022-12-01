@@ -1,8 +1,8 @@
-REM Advent of Code 2022: Day 1, part 1
+REM Advent of Code 2022: Day 1, part 2
 REM Written in Applesoft BASIC
 
  10  ONERR  GOTO 900
- 20  DIM CALS(200):CURR = 0
+ 20  DIM CALS(5):CURR = 0
  30  PRINT  CHR$ (4),"OPEN INPUT"
  40  PRINT  CHR$ (4),"READ INPUT"
  100 S$ = ""
