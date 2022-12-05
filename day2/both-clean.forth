@@ -2,7 +2,7 @@
 2 constant paper
 3 constant scissors
 
-: is-win ( them us -- yes ) - dup <0 swap 2 = or ;
+: is-win ( them us -- yes ) - dup -1 = swap 2 = or ;
 
 : get-score ( them us -- score )
   2dup is-win if 6 + else
