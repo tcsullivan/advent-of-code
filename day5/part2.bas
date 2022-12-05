@@ -3,6 +3,8 @@ REM Written in Applesoft BASIC
 
  10  DIM ST$(9)
  20  FOR I = 0 TO 8:ST$(I) = "": NEXT I
+ 30  HOME 
+ 40  ONERR  GOTO 900
  60  PRINT  CHR$ (4),"OPEN INPUT"
  70  PRINT  CHR$ (4),"READ INPUT"
  90 J = 1
@@ -20,9 +22,8 @@ REM Written in Applesoft BASIC
  170  IF K > 8 THEN K = 0
  180  GOTO 100
  300  FOR I = 0 TO 8
- 310  PRINT ST$(I)
+ 310  GOSUB 700
  320  NEXT I
- 325  PRINT 
  330 CL = 0
  340  GET C$: GET Z$
  350  IF CL = 13 AND  ASC (C$) = 13 GOTO 400
@@ -46,12 +47,27 @@ REM Written in Applesoft BASIC
  520 Z =  LEN (ST$(AC(1)))
  530  IF AC(0) = Z THEN ST$(AC(1)) = "": GOTO 600
  540 ST$(AC(1)) =  LEFT$ (ST$(AC(1)),Z - AC(0))
- 600  FOR I = 0 TO 8
- 610  PRINT ST$(I)
- 620  NEXT I
- 625  PRINT 
+ 600 I = AC(1): GOSUB 700
+ 610 I = AC(2): GOSUB 700
  630 L = 0
  640  GOTO 400
+ 700 X = I * 4 + 1
+ 705 Y = 25
+ 706 LE =  LEN (ST$(I))
+ 708  IF LE = 0 GOTO 780
+ 710  FOR Z = 1 TO 24 - LE
+ 712  VTAB Z
+ 714  HTAB X
+ 716  PRINT "   ";
+ 718  NEXT Z
+ 720  FOR Z = 1 TO LE
+ 730  VTAB Y - 1
+ 735  HTAB X
+ 740  PRINT "["; MID$ (ST$(I),Z,1);"]";
+ 750 Y = Y - 1
+ 760  IF Y = 1 THEN  RETURN 
+ 770  NEXT Z
+ 780  RETURN 
  900  PRINT  CHR$ (4),"CLOSE"
  910  END 
 
