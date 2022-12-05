@@ -1,0 +1,25 @@
+REM Advent of Code 2022: Day 2, part 1
+REM Written in Applesoft BASIC
+
+ 10  ONERR  GOTO 900
+ 20  PRINT  CHR$ (4),"OPEN INPUT"
+ 30  PRINT  CHR$ (4),"READ INPUT"
+ 60  DIM RPC$(3):RPC$(0) = "ROCK":RPC$(1) = "PAPER":RPC$(2) = "SCISSORS"
+ 70 SC = 0
+ 100  GET A$: GET Z$
+ 110  GET Z$: GET Z$
+ 120  GET B$: GET Z$
+ 130  GET Z$: GET Z$
+ 140 AV =  ASC (A$) - 65
+ 150 BV =  ASC (B$) - 88
+ 200 SC = SC + BV + 1
+ 230 R = AV - BV
+ 240  IF AV = BV THEN SC = SC + 3: GOTO 300
+ 250  IF AV = 0 AND BV = 1 THEN SC = SC + 6: GOTO 300
+ 260  IF AV = 1 AND BV = 2 THEN SC = SC + 6: GOTO 300
+ 270  IF AV = 2 AND BV = 0 THEN SC = SC + 6
+ 300  PRINT RPC$(AV),"VS.",RPC$(BV),"SCORE = ";SC
+ 310  GOTO 100
+ 900  PRINT  CHR$ (4),"CLOSE"
+ 910  END 
+

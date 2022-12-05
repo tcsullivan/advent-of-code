@@ -1,0 +1,28 @@
+REM Advent of Code 2022: Day 4, part 1
+REM Written in Applesoft BASIC
+
+ 10  ONERR  GOTO 900
+ 20  PRINT  CHR$ (4),"OPEN INPUT"
+ 30  PRINT  CHR$ (4),"READ INPUT"
+ 40  DIM GP(4)
+ 50 DU = 0
+ 100  FOR I = 0 TO 3:GP(I) = 0: NEXT I
+ 110 I = 0
+ 200  GET C$: GET Z$
+ 210 CV =  ASC (C$)
+ 220  IF CV < 48 GOTO 300
+ 230  IF CV > 57 GOTO 300
+ 240 CV = CV - 48
+ 250 GP(I) = GP(I) * 10 + CV
+ 260  GOTO 200
+ 300 I = I + 1
+ 310  IF I < 4 GOTO 200
+ 400  IF GP(0) >  = GP(2) AND GP(1) <  = GP(3) GOTO 500
+ 410  IF GP(2) >  = GP(0) AND GP(3) <  = GP(1) GOTO 500
+ 430  GOTO 100
+ 500 DU = DU + 1
+ 510  PRINT "EXTRA CLEANING DONE BY ";DU;" ELVES..."
+ 520  GOTO 100
+ 900  PRINT  CHR$ (4),"CLOSE"
+ 910  END 
+
