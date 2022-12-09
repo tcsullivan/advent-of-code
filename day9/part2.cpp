@@ -46,9 +46,10 @@ int main()
                         ty += hy > ty ? 1 : -1;
                 }
 
+            }
+
                 if (std::find(locs.cbegin(), locs.cend(), knots.back()) == locs.cend())
                     locs.emplace_back(knots.back());
-            }
         }
     }
 

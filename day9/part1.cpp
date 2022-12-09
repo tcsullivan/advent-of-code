@@ -1,6 +1,5 @@
 #include <algorithm>
 #include <iostream>
-#include <list>
 #include <string>
 #include <tuple>
 #include <vector>
@@ -8,6 +7,7 @@
 int main()
 {
     std::vector<std::pair<char, int>> steps;
+    std::vector<int> hashes (10000, 0);
 
     while (1) {
         std::string line;
@@ -19,13 +19,9 @@ int main()
     }
 
     int hx = 0, hy = 0, tx = 0, ty = 0;
-    std::list<std::pair<int, int>> locs;
-    locs.emplace_back(0, 0);
 
     for (const auto& [dir, count] : steps) {
         for (int i = 0; i < count; ++i) {
-            //std::cout << hx << ", " << hy << "    " << tx << ", " << ty << std::endl;
-
             if (dir == 'U')
                 ++hy;
             else if (dir == 'D')
@@ -41,14 +37,26 @@ int main()
                 if (hy != ty)
                     ty += hy > ty ? 1 : -1;
 
-                if (std::find(locs.cbegin(), locs.cend(), std::pair{tx, ty}) == locs.cend()) {
-                    locs.emplace_back(tx, ty);
+                int hash = tx * 1000 + ty;
+                for (int i = 0; i < hashes.size(); ++i) {
+                    if (hashes[i] == 0) {
+                        hashes[i] = hash;
+                        break;
+                    } else if (hashes[i] == hash) {
+                        break;
+                    }
                 }
             }
         }
     }
 
-    std::cout << locs.size() << std::endl;
+    int count = 0;
+    for (int i = 0; i < hashes.size(); ++i) {
+        ++count;
+        if (hashes[i] == 0)
+            break;
+    }
+    std::cout << count << std::endl;
 
     return 0;
 }
