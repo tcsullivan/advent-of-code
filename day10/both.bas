@@ -1,4 +1,4 @@
-REM Advent of Code 2022: Day 9, part 1
+REM Advent of Code 2022: Day 10, both parts
 REM Written in Applesoft BASIC
 
  10  GR 
