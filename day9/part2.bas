@@ -3,12 +3,16 @@ REM Written in Applesoft BASIC
 
 REM Same as part1, but track positions in SX and SY arrays.
 REM At 405, we reuse HX/HY/TX/TY to minimize changes from part1.
+REM Also added simple graphics, see 305/400, 412/438, and 458...
+REM Head, body, and tail are different colors.
 
  10  DIM HS(7000)
  20  DIM SX(10)
  30  DIM SY(10)
  40  FOR I = 0 TO 9:SX(I) = 0: NEXT I
  50  FOR I = 0 TO 9:SY(I) = 0: NEXT I
+ 60  GR 
+ 70  COLOR= 9: PLOT 19,19
  100 S$ = ""
  110  GET C$
  120  IF  ASC (C$) < 32 GOTO 200
@@ -19,23 +23,28 @@ REM At 405, we reuse HX/HY/TX/TY to minimize changes from part1.
  220 S =  VAL ( MID$ (S$,3, LEN (S$) - 2))
  230  PRINT ">>",D$;" ";S
  300  FOR I = 1 TO S
+ 305  COLOR= 0: PLOT 19 - SX(0),19 - SY(0)
  310  IF D$ = "U" THEN SY(0) = SY(0) + 1: GOTO 400
  320  IF D$ = "D" THEN SY(0) = SY(0) - 1: GOTO 400
  330  IF D$ = "R" THEN SX(0) = SX(0) + 1: GOTO 400
  340  IF D$ = "L" THEN SX(0) = SX(0) - 1: GOTO 400
  350  PRINT "ERROR: ";D$
  360  END 
- 400  FOR K = 1 TO 9
+ 400  COLOR= 1: PLOT 19 - SX(0),19 - SY(0)
+ 402  FOR K = 1 TO 9
  405 HX = SX(K - 1):HY = SY(K - 1)
  410 TX = SX(K):TY = SY(K)
+ 412  COLOR= 0: PLOT 19 - TX,19 - TY
  415 DX = HX - TX:DY = HY - TY
- 420  IF  ABS (DX) <  = 1 AND  ABS (DY) <  = 1 GOTO 460
+ 420  IF  ABS (DX) <  = 1 AND  ABS (DY) <  = 1 GOTO 438
  430  IF HX <  > TX THEN  GOSUB 500
  435  IF HY <  > TY THEN  GOSUB 550
+ 438  COLOR= 9: PLOT 19 - TX,19 - TY
  440 SX(K) = TX:SY(K) = TY
  445  NEXT K
  450 HH = TX * 1000 + TY
  455  GOSUB 600
+ 458  COLOR= 12: PLOT 19 - TX,19 - TY
  460  NEXT I
  470  GOTO 100
  500 Z =  - 1
@@ -59,3 +68,4 @@ REM At 405, we reuse HX/HY/TX/TY to minimize changes from part1.
  1050  PRINT "TOTAL: ";CO
  1060  END 
 
+]PR#0
