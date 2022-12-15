@@ -7,49 +7,58 @@ struct Sensor
 {
     long x, y, power;
 
-    Sensor(long xx, long yy, long pp):
+    Sensor(long xx, long yy, long pp = 0):
         x(xx), y(yy), power(pp) {}
 };
 
+std::vector<Sensor> sensors;
+
+bool isDistressBeacon(const Sensor& c)
+{
+    if (c.x < 0 || c.x > 4000000 || c.y < 0 || c.y > 4000000)
+        return false;
+
+    bool found = true;
+    uint64_t freq = 0;
+
+    for (auto& s : sensors) {
+        auto dist = std::abs(c.x - s.x) + std::abs(c.y - s.y);
+        if (dist <= s.power) {
+            found = false;
+            break;
+        }
+    }
+
+    return found;
+}
+
 int main()
 {
-    std::vector<Sensor> sensors;
     long px, py, bx, by;
 
-    do {
-        std::string line;
-        std::getline(std::cin, line);
-        if (std::cin.eof())
-            break;
-
+    std::string line;
+    std::getline(std::cin, line);
+    for (; !std::cin.eof(); std::getline(std::cin, line)) {
         auto a = sscanf(line.c_str(),
             "Sensor at x=%ld, y=%ld: closest beacon is at x=%ld, y=%ld",
             &px, &py, &bx, &by);
 
         long power = std::abs(px - bx) + std::abs(py - by);
         sensors.emplace_back(px, py, power);
-    } while (1);
+    }
 
-    std::cout << "# of sensors: " << sensors.size() << std::endl;
-
-    for (long y = 0; y <= 4000000; ++y) {
-        std::cout << "\r        \r" << y;
-        fflush(stdout);
-        for (long x = 0; x <= 4000000; ++x) {
-            bool h = false;
-
-            for (auto& s : sensors) {
-                auto dist = std::abs(x - s.x) + std::abs(y - s.y);
-                if (dist <= s.power) {
-                    long spr = (dist - std::abs(s.y - y));
-                    x += spr - std::abs(s.x - x);
-                    h = true;
-                    break;
-                }
+    for (auto& s : sensors) {
+        for (long q = 0; q <= (s.power + 1) * 2; ++q) {
+            auto x = s.x + q - s.power - 1;
+            auto y = s.y + q;
+            if (isDistressBeacon(Sensor(x, y))) {
+                std::cout << x * 4000000 + y << std::endl;
+                return 0;
             }
 
-            if (!h) {
-                std::cout << std::endl << x << ", " << y << std::endl;
+            y -= q * 2;
+            if (isDistressBeacon(Sensor(x, y))) {
+                std::cout << x * 4000000 + y << std::endl;
                 return 0;
             }
         }
