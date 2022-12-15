@@ -34,14 +34,13 @@ bool isDistressBeacon(const Sensor& c)
 
 int main()
 {
-    long px, py, bx, by;
-
     std::string line;
     std::getline(std::cin, line);
     for (; !std::cin.eof(); std::getline(std::cin, line)) {
-        auto a = sscanf(line.c_str(),
-            "Sensor at x=%ld, y=%ld: closest beacon is at x=%ld, y=%ld",
-            &px, &py, &bx, &by);
+        long px, py, bx, by;
+        sscanf(line.c_str(),
+               "Sensor at x=%ld, y=%ld: closest beacon is at x=%ld, y=%ld",
+               &px, &py, &bx, &by);
 
         long power = std::abs(px - bx) + std::abs(py - by);
         sensors.emplace_back(px, py, power);
