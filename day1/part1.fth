@@ -4,49 +4,19 @@
 \ 
 \ Usage: cat <input file> | gforth part1.fth
 
-variable sum
-
-: next-input ( -- c-addr u )
-  \ Reads a line of input from stdin.
-  pad dup 80 stdin read-line 2drop ;
-
-: for-each-input ( -- )
-  \ Collects next execution token and executes it for each result of
-  \ next-input with positive u.
-  ' >r begin
-  next-input
-  dup 0<> while
-  r@ execute repeat
-  2drop r> drop ;
-
-: digit? ( n -- b )
-  \ Determines if the given character is a digit.
-  \ Does not follow BASE.
-  dup [char] 0 >= swap [char] 9 <= and ;
+include common.fth
 
 : first-digit ( c-addr u -- n )
   \ Searches for the first digit character to occur in the given string.
   \ If no digit is found, returns zero.
-  0 do
-  dup i + c@
-  dup digit? if nip unloop exit then
-  drop loop
-  drop 0 ;
+  to-range 1 ['] digit? find-if ;
 
 : last-digit ( c-addr u -- n )
   \ Searches for the last digit character to occur in the given string.
   \ If no digit is found, returns zero.
-  1- 0 swap do
-  dup i + c@
-  dup digit? if nip unloop exit then
-  drop -1 +loop
-  drop 0 ;
+  to-range 1- swap -1 ['] digit? find-if ;
 
-: make-number ( n n -- n )
-  \ Given "tens" and "ones" digit characters, produces the integer value
-  \ represented by these characters. 
-  \ Does not follow BASE.
-  [char] 0 tuck - -rot - 10 * + ;
+variable sum
 
 : do-thing
   \ Does the part 1 thing: Finds first and last digit, makes number out of

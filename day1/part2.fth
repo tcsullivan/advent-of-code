@@ -4,26 +4,7 @@
 \ 
 \ Usage: cat <input file> | gforth part2.fth
 
-variable sum
-
-: next-input ( -- c-addr u )
-  \ Reads a line of input from stdin.
-  pad 80 0 fill
-  pad dup 80 stdin read-line 2drop ;
-
-: for-each-input ( -- )
-  \ Collects next execution token and executes it for each result of
-  \ next-input with positive u.
-  ' >r begin
-  next-input
-  dup 0<> while
-  r@ execute repeat
-  2drop r> drop ;
-
-: digit? ( n -- b )
-  \ Determines if the given character is a digit.
-  \ Does not follow BASE.
-  dup [char] 0 >= swap [char] 9 <= and ;
+include common.fth
 
 : equal? ( c-addr1 c-addr2 u -- b )
   \ Determines if c-addr1 and c-addr2 point to u equivalent characters.
@@ -34,18 +15,15 @@ variable sum
 : string-digit? ( c-addr -- n )
   \ Determines if a written digit exists at c-addr. If yes, returns the digit's
   \ character representation; otherwise, returns -1.
-  dup s" zero"  equal? if drop [char] 0 exit then
-  dup s" one"   equal? if drop [char] 1 exit then
-  dup s" two"   equal? if drop [char] 2 exit then
-  dup s" three" equal? if drop [char] 3 exit then
-  dup s" four"  equal? if drop [char] 4 exit then
-  dup s" five"  equal? if drop [char] 5 exit then
-  dup s" six"   equal? if drop [char] 6 exit then
-  dup s" seven" equal? if drop [char] 7 exit then
-  dup s" eight" equal? if drop [char] 8 exit then
-  dup s" nine"  equal? if drop [char] 9 exit then
-  drop -1 ;
-
+  >r
+  s" zero" s" one" s" two"   s" three" s" four"
+  s" five" s" six" s" seven" s" eight" s" nine"
+  r>
+  0 9 do
+  dup >r -rot equal? r> swap if
+  drop i 0 do 2drop loop
+  i [char] 0 + unloop exit then
+  -1 +loop drop -1 ;
 
 : first-digit ( c-addr u -- n )
   \ Searches for the first digit character or written digit to occur in the
@@ -64,15 +42,11 @@ variable sum
   dup string-digit? dup 0 >= if nip unloop exit then drop
   1- -1 +loop drop 0 ;
 
-: make-number ( n n -- n )
-  \ Given "tens" and "ones" digit characters, produces the integer value
-  \ represented by these characters. 
-  \ Does not follow BASE.
-  [char] 0 tuck - -rot - 10 * + ;
+variable sum
 
 : do-thing
-  \ Does the thing: Finds first and last digit, makes number out of them, and
-  \ adds that number to the sum.
+  \ Does the part 1 thing: Finds first and last digit, makes number out of
+  \ them, and adds that number to the sum.
   2dup first-digit
   -rot last-digit
   make-number sum +! ;
