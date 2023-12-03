@@ -1,3 +1,9 @@
+\ Advent of Code 2023, Day 2 Part 1
+\ Written by Clyne Sullivan <clyne@bitgloo.com>
+\ Released under the Unlicense.
+\ 
+\ Usage: gforth part1.fth
+
 : Game ( -- game-id valid? )
   0 s>d              \ Accumulator for >NUMBER
   [char] : parse     \ Parse game ID

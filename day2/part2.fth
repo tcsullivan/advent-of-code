@@ -1,3 +1,9 @@
+\ Advent of Code 2023, Day 2 Part 2
+\ Written by Clyne Sullivan <clyne@bitgloo.com>
+\ Released under the Unlicense.
+\ 
+\ Usage: gforth part2.fth
+
 variable min-red
 variable min-green
 variable min-blue
