@@ -1,3 +1,9 @@
+\ Advent of Code 2023, Day 4 Part 1
+\ Written by Clyne Sullivan <clyne@bitgloo.com>
+\ Released under the Unlicense.
+\
+\ Usage: gforth part1.fth
+
 5 constant wincnt
 8 constant mycnt
 

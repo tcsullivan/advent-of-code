@@ -1,3 +1,9 @@
+\ Advent of Code 2023, Day 4 Part 2
+\ Written by Clyne Sullivan <clyne@bitgloo.com>
+\ Released under the Unlicense.
+\
+\ Usage: gforth part2.fth
+
 5 constant wincnt
 8 constant mycnt
 
@@ -42,7 +48,7 @@ create wins cardcount init-wins
 : sum-wins 0 cardcount 0 do wins i cells + @ + loop ;
 
 : add-wins ( count i -- n )
-  cells wins + \ count wn
+  cells wins +
   dup @ rot 0 ?do
   swap cell+ 2dup +! swap loop
   2drop ;
