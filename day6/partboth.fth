@@ -2,18 +2,32 @@
 \ Written by Clyne Sullivan <clyne@bitgloo.com>
 \ Released under the Unlicense.
 \
+\ FORTH-79 compatible!
+\
 \ Input file changes:
 \ - For part 2, manually concatenate the numbers.
 
 variable times
 variable distances
 
+: 0<>   0= 0= ;
+: s>d   0 ;
+: 2drop drop drop ;
+: -rot  rot rot ;
+: tuck  dup -rot ;
+
+: read-number ( n c-addr u -- n )
+  \ Reads digits from (c-addr u), accumulating them into `n`.
+  dup 0= if 2drop exit then
+  0 do
+  dup c@ 48 -
+  rot base @ * + swap char+ loop drop ;
+
 : get-number ( -- n b )
   \ Parses the next number on the current line, returning that number and a
   \ boolean to indicate if the parse was successful.
-  0 s>d bl word count
-  dup 0<> >r
-  >number 2drop drop r> ;
+  0 bl word count
+  dup 0<> >r read-number r> ;
 
 : store-numbers ( c-addr -- )
   \ Reads all remaining numbers on the current line and stores them at here,
