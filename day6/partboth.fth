@@ -11,7 +11,6 @@ variable times
 variable distances
 
 : 0<>   0= 0= ;
-: s>d   0 ;
 : 2drop drop drop ;
 : -rot  rot rot ;
 : tuck  dup -rot ;
