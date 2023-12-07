@@ -70,21 +70,23 @@ defer one-pair :noname ( hand... -- b )
 is one-pair
 
 : get-type ( hand... -- type )
-  dup-hand hand-to-pad five-of-a-kind  if drop-hand 6 exit then
-  dup-hand hand-to-pad four-of-a-kind  if drop-hand 5 exit then
-  dup-hand hand-to-pad full-house      if drop-hand 4 exit then
-  dup-hand hand-to-pad three-of-a-kind if drop-hand 3 exit then
-  dup-hand hand-to-pad two-pair        if drop-hand 2 exit then
-  dup-hand hand-to-pad one-pair        if drop-hand 1 exit then
-                                          drop-hand 0 ;
+  hand-to-pad true case
+   five-of-a-kind of 6 endof
+   four-of-a-kind of 5 endof
+       full-house of 4 endof
+  three-of-a-kind of 3 endof
+         two-pair of 2 endof
+         one-pair of 1 endof
+                  >r 0 r> \ default
+  endcase ;
 
 : hand: ( -- n )
-  bl parse drop pad !                            \ Read hand, put c-addr to pad
-  5 0 do pad @ 4 i - chars + c@ card-to-b13 loop \ Convert hand to base 13,
-                                                 \ placing digits on the stack
-  dup-hand 5 sort reverse-hand get-type          \ Hand's type is the next digit
-  0 6 0 do 13 * + loop                           \ Reduct digits to one number
-  10000 * 0 s>d bl parse >number 2drop d>s + ;   \ x10000 then add hand's score
+  bl parse drop                         \ Stack has c-addr of hand
+  dup 4 + do i c@ card-to-b13 -1 +loop  \ Push each digit to stack in base 13
+  dup-hand 5 sort reverse-hand get-type \ Sort hand and determine its type
+  0 6 0 do 13 * + loop                  \ Reduce type and digits to one number
+  10000 *                               \ Shift left to make room for score
+  0 s>d bl parse >number 2drop d>s + ;  \ Add hand's score
 
 : score-hands ( hands... -- n )
   0 depth 1 do swap 10000 mod i * + loop ;
