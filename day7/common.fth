@@ -1,0 +1,91 @@
+\ Advent of Code 2023, Day 7 common code
+\ Written by Clyne Sullivan <clyne@bitgloo.com>
+\ Released under the Unlicense.
+\
+\ Input file changes:
+\ - Prepend each line with "hand: "
+
+\ Allow each part to define its own character conversion implementation.
+defer card-to-b13
+
+\ https://arxiv.org/pdf/1605.06640.pdf
+: bubble
+  dup if >r
+  over over < if swap then
+  r> swap >r 1- recurse r>
+  else drop then ;
+
+\ https://arxiv.org/pdf/1605.06640.pdf
+: sort ( a1 ... an n -- sorted )
+  1- dup 0 do >r r@ bubble r> loop drop ;
+
+: reverse-hand ( 1 2 3 4 5 -- 5 4 3 2 1 )
+  swap 2swap swap 4 roll ;
+
+: dup-hand ( hand... -- hand... hand... )
+  5 0 do 4 pick loop ;
+
+: drop-hand ( hand... -- )
+  2drop 2drop drop ;
+
+: hand-to-pad ( hand... -- )
+  5 0 do pad i cells + ! loop ;
+
+: pad@ ( n -- n )
+  cells pad + @ ;
+
+: match? ( n1 n2 -- b )
+  pad@ swap pad@ = ;
+
+defer five-of-a-kind :noname ( hand... -- b )
+  0 1 match? 1 2 match? and 2 3 match? and 3 4 match? and ;
+is five-of-a-kind
+
+defer four-of-a-kind :noname ( hand... -- b )
+  0 1 match? 1 2 match? and 2 3 match? and
+  1 2 match? 2 3 match? and 3 4 match? and or ;
+is four-of-a-kind
+
+defer full-house :noname ( hand... -- b )
+  0 1 match? 1 2 match? and 3 4 match? and
+  0 1 match? 2 3 match? and 3 4 match? and or ;
+is full-house
+
+defer three-of-a-kind :noname ( hand... -- b )
+  0 1 match? 1 2 match? and
+  1 2 match? 2 3 match? and or
+  2 3 match? 3 4 match? and or ;
+is three-of-a-kind
+
+: two-pair ( hand... -- b )
+  0 1 match? 2 3 match? and
+  1 2 match? 3 4 match? and or
+  0 1 match? 3 4 match? and or ;
+
+defer one-pair :noname ( hand... -- b )
+  0 1 match?
+  1 2 match? or
+  2 3 match? or
+  3 4 match? or ;
+is one-pair
+
+: get-type ( hand... -- type )
+  dup-hand hand-to-pad five-of-a-kind  if drop-hand 6 exit then
+  dup-hand hand-to-pad four-of-a-kind  if drop-hand 5 exit then
+  dup-hand hand-to-pad full-house      if drop-hand 4 exit then
+  dup-hand hand-to-pad three-of-a-kind if drop-hand 3 exit then
+  dup-hand hand-to-pad two-pair        if drop-hand 2 exit then
+  dup-hand hand-to-pad one-pair        if drop-hand 1 exit then
+                                          drop-hand 0 ;
+
+: hand: ( -- n )
+  bl parse drop pad !                            \ Read hand, put c-addr to pad
+  5 0 do pad @ 4 i - chars + c@ card-to-b13 loop \ Convert hand to base 13,
+                                                 \ placing digits on the stack
+  dup-hand 5 sort reverse-hand get-type          \ Hand's type is the next digit
+  0 6 0 do 13 * + loop                           \ Reduct digits to one number
+  10000 * 0 s>d bl parse >number 2drop d>s + ;   \ x10000 then add hand's score
+
+: score-hands ( hands... -- n )
+  0 depth 1 do swap 10000 mod i * + loop ;
+
