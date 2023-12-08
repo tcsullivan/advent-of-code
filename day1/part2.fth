@@ -9,8 +9,10 @@ include common.fth
 : equal? ( c-addr1 c-addr2 u -- b )
   \ Determines if c-addr1 and c-addr2 point to u equivalent characters.
   0 do
-  2dup c@ swap c@ <> if unloop 2drop false exit then
-  char+ swap char+ loop 2drop true ;
+  2dup c@ swap c@ <> if
+  2drop false unloop exit then
+  1+ swap 1+
+  loop 2drop true ;
 
 : string-digit? ( c-addr -- n )
   \ Determines if a written digit exists at c-addr. If yes, returns the digit's
@@ -23,35 +25,29 @@ include common.fth
   dup >r -rot equal? r> swap if
   drop i 0 do 2drop loop
   i [char] 0 + unloop exit then
-  -1 +loop drop -1 ;
+  -1 +loop drop 0 ;
+
+: digit-search ( beg end inc -- n )
+  -rot swap do
+  i digit? dup 0= if drop i string-digit? then
+  dup if nip unloop exit then drop
+  dup +loop drop 0 ;
 
 : first-digit ( c-addr u -- n )
   \ Searches for the first digit character or written digit to occur in the
   \ given string. If no digit is found, returns zero.
-  0 do
-  dup c@ dup digit? if nip unloop exit then drop
-  dup string-digit? dup 0 >= if nip unloop exit then drop
-  char+ loop drop 0 ;
+  to-range 1 digit-search ;
 
 : last-digit ( c-addr u -- n )
   \ Searches for the last digit character or written digit to occur in the
   \ given string. If no digit is found, returns zero.
-  1- tuck + swap
-  0 swap do
-  dup c@ dup digit? if nip unloop exit then drop
-  dup string-digit? dup 0 >= if nip unloop exit then drop
-  1- -1 +loop drop 0 ;
+  to-range 1- swap -1 digit-search ;
 
-variable sum
-
-: do-thing
-  \ Does the part 1 thing: Finds first and last digit, makes number out of
-  \ them, and adds that number to the sum.
+: make-number-and-add-to-sum ( sum c-addr u -- sum )
+  \ Makes a number out of the found first and last digits, adding it to the sum.
   2dup first-digit
   -rot last-digit
-  make-number sum +! ;
+  make-number + ;
 
-0 sum !
-for-each-input do-thing
-sum ? cr
+0 for-each-input make-number-and-add-to-sum . cr
 

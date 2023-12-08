@@ -54,6 +54,8 @@ variable distances
 
 include input
 
+utime
 try-all-races . cr
+utime 2swap d- d. cr
 bye
 

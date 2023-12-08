@@ -10,9 +10,7 @@ defer card-to-b13
 
 \ https://arxiv.org/pdf/1605.06640.pdf
 : bubble
-  dup if >r
-  over over < if swap then
-  r> swap >r 1- recurse r>
+  dup if >r 2dup < if swap then r> swap >r 1- recurse r>
   else drop then ;
 
 \ https://arxiv.org/pdf/1605.06640.pdf
@@ -29,7 +27,7 @@ defer card-to-b13
   2drop 2drop drop ;
 
 : hand-to-pad ( hand... -- )
-  5 0 do pad i cells + ! loop ;
+  pad 5 0 do tuck ! cell+ loop drop ;
 
 : pad@ ( n -- n )
   cells pad + @ ;
@@ -46,11 +44,6 @@ defer four-of-a-kind :noname ( hand... -- b )
   1 2 match? 2 3 match? and 3 4 match? and or ;
 is four-of-a-kind
 
-defer full-house :noname ( hand... -- b )
-  0 1 match? 1 2 match? and 3 4 match? and
-  0 1 match? 2 3 match? and 3 4 match? and or ;
-is full-house
-
 defer three-of-a-kind :noname ( hand... -- b )
   0 1 match? 1 2 match? and
   1 2 match? 2 3 match? and or
@@ -61,6 +54,9 @@ is three-of-a-kind
   0 1 match? 2 3 match? and
   1 2 match? 3 4 match? and or
   0 1 match? 3 4 match? and or ;
+
+: full-house ( hand... -- b )
+  two-pair three-of-a-kind and ;
 
 defer one-pair :noname ( hand... -- b )
   0 1 match?

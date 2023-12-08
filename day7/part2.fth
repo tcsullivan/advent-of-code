@@ -29,14 +29,6 @@ is five-of-a-kind
 is four-of-a-kind
 
 :noname
-  [ ' full-house defer@ compile, ]
-  0 1 match? 1 2 match? and   4 joker? and or
-  0 1 match? 2 3 match? and   4 joker? and or
-  0 1 match?                  3 joker? and or
-  1 2 match?                  3 joker? and or ;
-is full-house
-
-:noname
   [ ' three-of-a-kind defer@ compile, ]
   0 1 match?   4 joker? and or
   1 2 match?   4 joker? and or

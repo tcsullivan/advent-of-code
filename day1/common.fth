@@ -15,16 +15,11 @@
 : digit? ( n -- b )
   \ Determines if the given character is a digit.
   \ Does not follow BASE.
-  dup [char] 0 >= swap [char] 9 <= and ;
+  c@ dup dup [char] 0 >= swap [char] 9 <= and 0=
+  if drop 0 then ;
 
 : to-range
   over + ;
-
-: find-if ( beg end inc pred -- n )
-  2swap swap do
-  i c@ 2dup swap execute
-  if nip nip unloop exit then
-  drop over +loop 2drop 0 ;
 
 : make-number ( n n -- n )
   \ Given "tens" and "ones" digit characters, produces the integer value
