@@ -4,8 +4,9 @@
 \
 \ Input file changes:
 \ - Wrap path with ": path s" " and "" ;" 
-\ - Prefix map with line containing "create network"
-\ - Modify each line to be in this format: "JKT , KFV , CFQ ,"
+\ - Add a line containing "create network" before the network is defined
+\ - Modify each network line to be in this format: "JKT , KFV , CFQ ,"
+\ - Add a line containing "0 ," after the network's definition
 
 36 base !
 
