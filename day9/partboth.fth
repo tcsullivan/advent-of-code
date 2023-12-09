@@ -6,8 +6,6 @@
 \ - Replace all spaces and end-of-lines with " , "
 \ - Prepend all lines with "here "
 
-: cell-loop 1 cells postpone +loop ;
-
 : to-range ( c-addr u -- end start )
   cells over + swap ;
 
