@@ -29,19 +29,19 @@ variable acc
   0 do dup i cells + @ 0= pad @ and pad ! loop
   drop pad @ ;
 
-: count-reduce ( c-addr u -- )
+: reduce-and-acc ( c-addr u -- )
   begin get-last acc +! reduce
   2dup all-zero? until 2drop ;
 
 : part1 ( ... -- )
   0 acc !
   depth 1- 0 do
-  over >r over - 1 cells / count-reduce r> loop ;
+  over >r over - 1 cells / reduce-and-acc r> loop ;
 
 : part2 ( ... -- )
   0 acc !
   depth 1- 0 do
-  over >r over - 1 cells / reverse count-reduce r> loop ;
+  over >r over - 1 cells / reverse reduce-and-acc r> loop ;
 
 \ Only one part at a time...
 include input here
