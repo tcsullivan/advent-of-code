@@ -5,24 +5,28 @@
 \ Input file changes:
 \ - Prepend all lines with "map: "
 
- variable width    0 width   !
+ variable width    0 width   ! \ map dimensions
  variable height   0 height  !
-2variable start  0 0 start  2!
+2variable start  0 0 start  2! \ XY coordinates
 2variable prev   0 0 prev   2!
 
+\ Sets of characters you can travel to for the given direction.
 create north char | c, char 7 c, char F c, char S c,
 create south char | c, char L c, char J c, char S c,
 create east  char - c, char 7 c, char J c, char S c,
 create west  char - c, char L c, char F c, char S c,
 
+\ Parse the row of map data following this word and store/allocate it to `here`.
 : map:                          bl parse
                                 width @ 0= if dup width ! then
                                 here over allot swap move ;
 
+\ Build the map and calculate its height.
 create map
 include input
 here map - width @ / height !
 
+\ 5x5 bitmaps for each map character. '~' and ' ' for maximum contrast.
 : i|  s"   ~    ~    ~    ~    ~  " ;
 : i7  s"           ~~~    ~    ~  " ;
 : iFF s"             ~~~  ~    ~  " ;
@@ -31,38 +35,47 @@ here map - width @ / height !
 : i-  s"           ~~~~~          " ;
 : i.  s"                          " ;
 
-create image width @ height @ * 25 * allot
+5 constant tiledim
+create image width @ height @ tiledim dup * * * allot
 
-: coord ( y x -- i )            width @ rot * + ;
+\
+\ Map words
+\
+
+: to-idx ( y x -- i )           width @ rot * + ;
 : coord= ( y x y x -- b )       rot = -rot = and ;
-: map@ ( y x -- n )             coord map + c@ ;
-: map! ( n y x -- )             coord map + c! ;
+: map@ ( y x -- n )             to-idx map + c@ ;
+: map! ( n y x -- )             to-idx map + c! ;
 : go-north ( y x -- y x )       swap 1- swap ;
 : go-south ( y x -- y x )       swap 1+ swap ;
 : go-east ( y x -- y x )        1+ ;
 : go-west ( y x -- y x )        1- ;
 : new? ( y x -- b )             prev 2@ coord= 0= ;
 
-: dir? ( y x a -- b )           >r map@ r> 4 0 do
+\ Does XY's path continue north/south/east/west?
+: path? ( y x dir -- b )        >r map@ r> 4 0 do
                                 2dup i + c@ = if 2drop true unloop exit then
                                 loop 2drop false ;
 
-: try-north? ( y x -- b )       2dup south dir? -rot go-north north dir? and ;
-: try-south? ( y x -- b )       2dup north dir? -rot go-south south dir? and ;
-: try-east? ( y x -- b )        2dup west  dir? -rot go-east east dir? and ;
-: try-west? ( y x -- b )        2dup east  dir? -rot go-west west dir? and ;
+\ Check if XY pipe and pipe at N/S/E/W connect.
+: try-north? ( y x -- b )       2dup south path? -rot go-north north path? and ;
+: try-south? ( y x -- b )       2dup north path? -rot go-south south path? and ;
+: try-east? ( y x -- b )        2dup west  path? -rot go-east east path? and ;
+: try-west? ( y x -- b )        2dup east  path? -rot go-west west path? and ;
 
 : find-start ( -- y x )         height @ 0 do width @ 0 do
                                 j i map@ [char] S = if
                                 j i unloop unloop exit then
                                 loop loop ;
 
+\ Move XY in the untraveled direction.
 : travel ( y x -- y x )
   2dup try-north? if 2dup go-north new? if go-north exit then then
   2dup try-south? if 2dup go-south new? if go-south exit then then
   2dup try-east?  if 2dup go-east  new? if go-east  exit then then
   2dup try-west?  if 2dup go-west  new? if go-west  exit then then ;
 
+\ Travel the entire pipe loop, counting the number of steps taken.
 : travel-all ( -- n )
   0 pad ! start 2@ begin
   2dup travel
@@ -70,27 +83,31 @@ create image width @ height @ * 25 * allot
   1 pad +!
   2dup start 2@ coord= until 2drop pad @ ;
 
+\
+\ Image words
+\
+
+: row                           width @ tiledim * ;
+: row-                          row - ;
+: row+                          row + ;
+: col-                          1- ;
+: col+                          1+ ;
+: valid-c?                      dup 0 >= swap row < and ;
+: valid? ( i -- b )             row /mod valid-c? swap valid-c? and ;
+: icoord                        tiledim * swap row tiledim * * + ;
+: image@                        image + c@ ;
+: image!                        icoord image + c! ;
+
+\ Draw the 5x5 tile (c-addr u) to the image address.
 : blit ( ia c-addr u -- )
-  0 do \ ia id
-  dup i + c@ \ ia id P
-  2 pick
-  i 5 / width @ 5 * * +
-  i 5 mod +
+  0 do
+  2dup i + c@
+  swap i tiledim /mod row * swap + +
   c! loop 2drop ;
 
-: icoord                        5 * swap width @ 25 * * + ;
-: image@                        icoord image + c@ ;
-: image!                        icoord image + c! ;
-: go-north ( y x -- y x )       width @ 5 * - ;
-: go-south ( y x -- y x )       width @ 5 * + ;
-: go-east ( y x -- y x )        1+ ;
-: go-west ( y x -- y x )        1- ;
-: valid-c?                      dup 0 >= swap width @ 5 * < and ;
-: valid? ( i -- b )             width @ 5 * /mod valid-c? swap valid-c? and ;
-
+\ Draw the symbol on the map at XY to the image.
 : draw ( y x -- )
-  2dup icoord image +
-  -rot map@ case
+  2dup map@ >r icoord image + r> case
   [char] | of i| blit endof
   [char] 7 of i7 blit endof
   [char] F of iFF blit endof
@@ -100,36 +117,39 @@ create image width @ height @ * 25 * allot
   [char] . of i. blit endof
   endcase ;
 
-: fill ( i -- )
+\ Recursively fill image pixels surrounding image address `i` with white.
+: fill-image ( i -- )
   255 over image + c!
-  dup valid? if dup go-north image + c@ bl = if dup go-north recurse then then
-  dup valid? if dup go-south image + c@ bl = if dup go-south recurse then then
-  dup valid? if dup go-east  image + c@ bl = if dup go-east  recurse then then
-  dup valid? if dup go-west  image + c@ bl = if dup go-west  recurse then then
+  dup row- valid? if dup row- image@ bl = if dup row- recurse then then
+  dup row+ valid? if dup row+ image@ bl = if dup row+ recurse then then
+  dup col- valid? if dup col- image@ bl = if dup col- recurse then then
+  dup col+ valid? if dup col+ image@ bl = if dup col+ recurse then then
   drop ;
 
+\ Check if the tile at image address `i` was flooded by a fill.
 : filled? ( i -- )
-  dup      c@ bl =
-  over 4 + c@ bl = and
-  over width @ 5 * 4 * +     c@ bl = and
-  swap width @ 5 * 4 * + 4 + c@ bl = and ;
+  dup c@ bl =
+  over tiledim 1- + c@ bl = and
+  over row tiledim 1- * + c@ bl = and
+  swap tiledim 1- + row tiledim 1- * + c@ bl = and ;
 
 : build-image                   height @ 0 do width @ 0 do
                                 j i draw
                                 loop loop ;
-: dump-image                    width @ height @ * 25 * 0 do
-                                image i + c@ emit loop ;
+: dump-image                    width @ height @ * tiledim dup * * 0 do
+                                i image@ emit loop ;
 : count-image                   0 pad ! height @ 0 do width @ 0 do
                                 j i icoord image + filled? pad +!
                                 loop loop pad @ negate ;
 
 find-start start 2!
 
-." Part 1: " travel-all 2/ . cr
-
 build-image
 start 2@ icoord image + iFF blit \ 'F' is the correct piece for our start (TODO automate)
-start 2@ icoord go-east go-east go-east go-south go-south go-south fill
+start 2@ icoord 3 + row 3 * + fill-image \ Pipes enclose bottom right corner (TODO automate)
+
+." Part 1: " travel-all 2/ . cr
 ." Part 2: " count-image . cr
 
 bye
+
