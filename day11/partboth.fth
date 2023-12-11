@@ -23,7 +23,7 @@ create coords depth save-stack -1 , -1 ,
 
 : 3dup                          2 pick 2 pick 2 pick ;
 : 4dup                          2over 2over ;
-: maxswap                       2dup < if swap then ;
+: maxswap                       2dup > if swap then ;
 
 : to-idx ( y x -- i )           width @ rot * + ;
 : map@ ( y x -- n )             to-idx map + c@ ;
@@ -38,14 +38,15 @@ create empty-rows find-empty-rows depth save-stack -1 ,
 create empty-cols find-empty-cols depth save-stack -1 ,
 create ecount 0 ,
 
-: count-within ( u l a -- n )   0 >r begin dup @ -1 > while
-                                2dup @ <= if dup @ 3 pick < r> + >r then
-                                cell+ repeat 2drop drop r> negate ;
+: cw-cond                       2dup @ <= over @ -1 <> and ;
+: count-within ( l u a -- n )   0 >r 1 cells - begin cell+ cw-cond 0= until
+                                nip begin cw-cond while r> 1+ >r cell+ repeat
+                                2drop r> ;
 : empty-count ( u l a -- n )    >r maxswap r> count-within ;
-: distance ( y x y x -- n )     rot 2dup - abs >r
-                                2swap swap 2dup - abs >r
+: distance ( y x y x -- n )     >r -rot r> swap
+                                2dup - abs >r 2swap 2dup - abs >r
                                 empty-rows empty-count >r empty-cols empty-count
-                                r> + dup ecount +! r> + r> + ;
+                                r> + dup ecount +! 2r> + + ;
 : sum-next-dists ( y x -- n )   0 >r dup coord+ begin dup @ 0 >= while
                                 2dup 2@ rot 2@ distance r> + >r
                                 coord+ repeat 2drop r> ;
