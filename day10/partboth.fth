@@ -144,9 +144,9 @@ create image width @ height @ tiledim dup * * * allot
 \ Check if the tile at image address `i` was flooded by a fill.
 : filled? ( i -- )
   dup c@ bl =
-  over tiledim 1- + c@ bl = and
-  over row tiledim 1- * + c@ bl = and
-  swap tiledim 1- + row tiledim 1- * + c@ bl = and ;
+  over tiledim + c@ bl = and
+  over row tiledim * + c@ bl = and
+  swap tiledim + row tiledim * + c@ bl = and ;
 
 : build-image                   height @ 0 do width @ 0 do
                                 j i draw
@@ -157,17 +157,11 @@ create image width @ height @ tiledim dup * * * allot
                                 j i icoord image + filled? pad +!
                                 loop loop pad @ negate ;
 
+\ Find start and identify/set what pipe it should be.
 find-start start 2!
 start 2@ 2dup identify -rot map!
 
-\ Yes -- we're going to check all four possible pipe enclosures, take the min,
-\ and expect that to be correct.
-build-image start 2@ icoord 3 + row 3 * + fill-image count-image
-build-image start 2@ icoord 3 +           fill-image count-image
-build-image start 2@ icoord     row 3 * + fill-image count-image
-build-image start 2@ icoord fill-image count-image
-
 ." Part 1: " travel-all 2/ . cr
-." Part 2: " min min min . cr
+." Part 2: " build-image 0 fill-image count-image . cr
 bye
 
