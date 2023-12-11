@@ -83,6 +83,21 @@ create image width @ height @ tiledim dup * * * allot
   1 pad +!
   2dup start 2@ coord= until 2drop pad @ ;
 
+: identify ( y x -- n )
+  0 pad !
+  2dup go-north north path? pad +!
+  2dup go-south south path? 2 * pad +!
+  2dup go-east  east  path? 4 * pad +!
+       go-west  west  path? 8 * pad +!
+  pad @ case
+   -3 of [char] | endof
+   -5 of [char] L endof
+   -9 of [char] J endof
+   -6 of [char] F endof
+  -10 of [char] 7 endof
+  -12 of [char] - endof
+  endcase ;
+
 \
 \ Image words
 \
@@ -143,12 +158,11 @@ create image width @ height @ tiledim dup * * * allot
                                 loop loop pad @ negate ;
 
 find-start start 2!
-
-build-image
-start 2@ icoord image + iFF blit \ 'F' is the correct piece for our start (TODO automate)
-start 2@ icoord 3 + row 3 * + fill-image \ Pipes enclose bottom right corner (TODO automate)
-
 ." Part 1: " travel-all 2/ . cr
+
+start 2@ 2dup identify -rot map!
+build-image
+start 2@ icoord 3 + row 3 * + fill-image \ Pipes enclose bottom right corner (TODO automate)
 ." Part 2: " count-image . cr
 
 bye
