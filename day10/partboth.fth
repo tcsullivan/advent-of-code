@@ -11,10 +11,10 @@
 2variable prev   0 0 prev   2!
 
 \ Sets of characters you can travel to for the given direction.
-create north char | c, char 7 c, char F c, char S c,
-create south char | c, char L c, char J c, char S c,
-create east  char - c, char 7 c, char J c, char S c,
-create west  char - c, char L c, char F c, char S c,
+create north char | c, char 7 c, char F c,
+create south char | c, char L c, char J c,
+create east  char - c, char 7 c, char J c,
+create west  char - c, char L c, char F c,
 
 \ Parse the row of map data following this word and store/allocate it to `here`.
 : map:                          bl parse
@@ -53,7 +53,7 @@ create image width @ height @ tiledim dup * * * allot
 : new? ( y x -- b )             prev 2@ coord= 0= ;
 
 \ Does XY's path continue north/south/east/west?
-: path? ( y x dir -- b )        >r map@ r> 4 0 do
+: path? ( y x dir -- b )        >r map@ r> 3 0 do
                                 2dup i + c@ = if 2drop true unloop exit then
                                 loop 2drop false ;
 
@@ -158,12 +158,16 @@ create image width @ height @ tiledim dup * * * allot
                                 loop loop pad @ negate ;
 
 find-start start 2!
-." Part 1: " travel-all 2/ . cr
-
 start 2@ 2dup identify -rot map!
-build-image
-start 2@ icoord 3 + row 3 * + fill-image \ Pipes enclose bottom right corner (TODO automate)
-." Part 2: " count-image . cr
 
+\ Yes -- we're going to check all four possible pipe enclosures, take the min,
+\ and expect that to be correct.
+build-image start 2@ icoord 3 + row 3 * + fill-image count-image
+build-image start 2@ icoord 3 +           fill-image count-image
+build-image start 2@ icoord     row 3 * + fill-image count-image
+build-image start 2@ icoord fill-image count-image
+
+." Part 1: " travel-all 2/ . cr
+." Part 2: " min min min . cr
 bye
 
