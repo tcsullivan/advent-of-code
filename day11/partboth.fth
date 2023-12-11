@@ -8,18 +8,22 @@
 variable width
 variable height
 
-: map:  bl parse width @ 0= if dup width ! then here over allot swap move ;
+\ Collect '#' coordinates while we parse the map.
+: map:          bl parse
+                width @ 0= if dup width ! then 1 height +!
+                0 do dup i + c@ dup c, [char] # = if
+                i height @ 1- swap rot then loop drop ;
+: save-stack    0 do , loop ;
 
 \ Build the map and calculate its height.
-0 width !
+0 width ! 0 height !
 create map
 include input
-here map - width @ / height !
+create coords depth save-stack -1 , -1 ,
 
 : 3dup                          2 pick 2 pick 2 pick ;
 : 4dup                          2over 2over ;
 : maxswap                       2dup < if swap then ;
-: save-stack                    0 do , loop ;
 
 : to-idx ( y x -- i )           width @ rot * + ;
 : map@ ( y x -- n )             to-idx map + c@ ;
@@ -28,13 +32,10 @@ here map - width @ / height !
                                 j i empty? and loop if i then loop ;
 : find-empty-cols ( -- n... )   width @ 0 do true height @ 0 do
                                 i j empty? and loop if i then loop ;
-: save-coords ( -- )            height @ 0 ?do width @ 0 ?do
-                                j i empty? 0= if j i 2, then loop loop ;
 : coord+ ( a -- a )             2 cells + ;
 
 create empty-rows find-empty-rows depth save-stack -1 ,
 create empty-cols find-empty-cols depth save-stack -1 ,
-create coords save-coords -1 , -1 ,
 create ecount 0 ,
 
 : count-within ( u l a -- n )   0 >r begin dup @ -1 > while
