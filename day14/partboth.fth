@@ -72,7 +72,7 @@ create hist2 10 cells allot
                         1000 0 do
                         hist2 cell+ hist2 9 cells move
                         cycle score hist2 9 cells + !
-                        hist hist2 10 memcmp if i leave then loop
+                        hist hist2 10 memcmp if i 1+ leave then loop
                         dup 210 + >r target r@ - dup rot mod - r@ + r> drop
                         target swap ?do cycle loop score ;
 
