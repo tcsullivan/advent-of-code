@@ -1,0 +1,8 @@
+unsigned long long int n = 0;
+for (int x = 0; x < 4000; ++x) { 
+for (int m = 0; m < 4000; ++m) { 
+printf("\r%d %d", x, m);
+for (int a = 0; a < 4000; ++a) { 
+for (int s = 0; s < 4000; ++s) { 
+n += run(x, m, a, s); }}}}
+printf("\n%ull\n", n); }

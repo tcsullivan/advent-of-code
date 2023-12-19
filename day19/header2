@@ -1,0 +1,2 @@
+#include <stdio.h>
+int run(int x, int m, int a, int s) { goto in;

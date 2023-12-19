@@ -1,0 +1,2 @@
+#include <stdio.h>
+int sum = 0; void run(int x, int m, int a, int s) { goto in;
