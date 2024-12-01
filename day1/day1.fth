@@ -1,57 +1,39 @@
+include ../common.fth
 include input
 
-depth 2/ constant list-size
-create list1 list-size cells allot
-create list2 list-size cells allot
-
-: to-lists ( n n addr addr -- )
-  3 roll swap ! ! ;
+depth 2/
+dup constant list-size
+cells dup
+create list1 allot
+create list2 allot
 
 : all-to-lists ( ... u -- )
-  list2 list1 rot 0 do
-  2dup 2>r to-lists r> cell+ r> cell+ swap
-  loop 2drop ;
-
-: insert-sort ( addr u -- )
-  1 do                                  \ addr
-  dup i cells + @                       \ addr key
-  i 1-                                  \ addr key j
-  begin
-  0 over <=                             \ addr key j 0<=j
-  dup if
-  2over swap 3 pick cells + @ <         \ addr key j 0<=j key<addr[j]
-  and then
-  while                                 \ addr key j
-  2 pick over cells +                   \ addr key j addr+j
-  dup @ swap cell+ !                    \ addr key j
-  1- repeat
-  1+ cells 2 pick + !                   \ addr
-  loop drop ;
+  cells 0 do
+  list1 i + ! list2 i + !
+  cell-loop ;
 
 : sum-diffs ( -- n )
-  0 list-size 0 do
-  i cells dup list1 + swap list2 +
-  @ swap @ - abs +
-  loop ;
+  0 list-size cells 0 do
+  i list1 + @ i list2 + @ - abs +
+  cell-loop ;
 
 : list-count ( n addr u -- n )
-  rot 0 swap 2swap
-  cells over + swap do
+  rot 0 swap 2swap cell-do
   dup i @ = if swap 1+ swap then
-  cell +loop drop ;
+  cell-loop drop ;
 
+: list2-count list2 list-size list-count ;
 : similarity-score ( -- n )
-  0 list-size 0 do
-  list1 i cells + @ dup
-  list2 list-size list-count * +
-  loop ;
+  0 list1 list-size cell-do
+  i @ dup list2-count * +
+  cell-loop ;
 
 list-size all-to-lists
 list1 list-size insert-sort
 list2 list-size insert-sort
 
 cr
-sum-diffs ." Part 1: " . cr
+sum-diffs        ." Part 1: " . cr
 similarity-score ." Part 2: " . cr
 bye
-  
+
