@@ -7,28 +7,22 @@ cells dup
 create list1 allot
 create list2 allot
 
-: all-to-lists ( ... u -- )
-  cells 0 do
-  list1 i + ! list2 i + !
-  cell-loop ;
+: all-to-lists ( ... -- )       list-size cells 0 do
+                                list1 i + ! list2 i + !
+                                cell-loop ;
+: list-count ( n addr u -- n )  2>r 0 2r> cell-do
+                                over i @ = if 1+ then
+                                cell-loop nip ;
+: list2-count ( n -- n )        list2 list-size list-count ;
 
-: sum-diffs ( -- n )
-  0 list-size cells 0 do
-  i list1 + @ i list2 + @ - abs +
-  cell-loop ;
+: sum-diffs ( -- n )            0 list-size cells 0 do
+                                list1 i + @ list2 i + @
+                                - abs + cell-loop ;
+: similarity-score ( -- n )     0 list1 list-size cell-do
+                                i @ dup list2-count * +
+                                cell-loop ;
 
-: list-count ( n addr u -- n )
-  rot 0 swap 2swap cell-do
-  dup i @ = if swap 1+ swap then
-  cell-loop drop ;
-
-: list2-count list2 list-size list-count ;
-: similarity-score ( -- n )
-  0 list1 list-size cell-do
-  i @ dup list2-count * +
-  cell-loop ;
-
-list-size all-to-lists
+all-to-lists
 list1 list-size insert-sort
 list2 list-size insert-sort
 
