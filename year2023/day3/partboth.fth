@@ -85,6 +85,8 @@ variable sum \ Accumulator for part 1 & 2 answers.
   1 cells -
   dup pad = until drop ;
 
+utime
+
 \ Part 1: Sum all numbers that touch symbols.
 0 sum !
 ' symbol? ' add-to-sum search-schematic
@@ -94,6 +96,8 @@ variable sum \ Accumulator for part 1 & 2 answers.
 0 sum !
 ' gear? ' mul-and-sum search-schematic
 ." Part 2: " sum ? cr
+
+utime 2swap d- ." Time: " d. cr
 
 bye
 

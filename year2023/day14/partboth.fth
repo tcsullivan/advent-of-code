@@ -54,9 +54,11 @@ create loads width @ height @ max cells allot
 
 \ Find target-th load score by cycling to a steady state, searching for the
 \ oscillation period, then fast-forwarding to close behind the target.
-: score-target          149 1 do cycle loop cycle score
+: score-target          205 1- 1 do cycle loop cycle score
                         0 begin cycle score 2 pick <> while 1+ repeat nip
-                        dup 150 + >r target r@ - dup rot mod - r@ + r> drop
+                        dup 205 + begin dup target 205 - < while over + repeat nip
+.s cr
+                        \ dup 190 + >r target r@ - dup rot mod - r@ + r> drop
                         target swap ?do cycle loop score ;
 
 utime
@@ -67,5 +69,6 @@ utime 2swap
 ." Part 1: " . cr
 ." Part 2: " . cr
 ." Time: " 2swap d- d. ." us" cr
+.s cr
 bye
 
