@@ -16,12 +16,12 @@ create level-buf 100 cells allot
 
 : read-level      ( -- c-addr u )          level-buf 100 cells fd read-line throw level-buf -rot ;
 : parse-level     ( c-addr u -- c-addr u ) evaluate level-buf depth 1- 2dup 2>r cell-do i ! cell-loop 2r> ;
-: safe-asc?       ( n n -- b )             2dup < -rot - abs dup 0 > swap 4 < and and ;
-: safe-des?       ( n n -- b )             2dup > -rot - abs dup 0 > swap 4 < and and ;
+: safe-step?      ( n n -- b )             - abs dup 0 > swap 4 < and ;
+: safe-asc?       ( n n -- b )             2dup < -rot safe-step? and ;
+: safe-des?       ( n n -- b )             2dup > -rot safe-step? and ;
 : all-of          ( c-addr u xt -- b )     true 2swap 1- cell-do over i @ i cell+ @ rot execute and cell-loop nip ;
 : all-of-x1       ( c-addr u xt -- b )     2 pick 2 pick cell-do
-                                           here 2over cell-do
-                                           i j <> if i @ over ! cell+ then cell-loop
+                                           here 2over cell-do i j <> if i @ over ! cell+ then cell-loop
                                            here tuck - cell /
                                            2 pick all-of
                                            if unloop 2drop drop true exit then
