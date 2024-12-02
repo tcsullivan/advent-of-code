@@ -1,7 +1,6 @@
 include ../common.fth
 
 0 value fd
-defer check
 create level-buf 100 cells allot
 
 \ read-level        Reads a line from fd into level-buf
