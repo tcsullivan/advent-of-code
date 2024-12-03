@@ -1,50 +1,45 @@
 -1 value mul-start
 -1 value mul-end
- 1 value enabled
+false value disabled
 variable sum
 
-: mul?   ( addr -- b ) s" mul("    tuck compare 0= ;
-: do?    ( addr -- b ) s" do()"    tuck compare 0= ;
-: don't? ( addr -- b ) s" don't()" tuck compare 0= ;
-
+: s=            tuck compare 0= ;
 : reset-mul     -1 to mul-start -1 to mul-end ;
 : mul-len       mul-end mul-start - 1+ ;
 : advance       rot over + -rot - ;
-: get-number    0 0 2swap >number 2>r drop 2r> ;
+: get-number    0 s>d 2swap >number 2>r d>s 2r> ;
 
 : check-mul ( addr -- )
-  mul-len 0< if drop exit then
-  mul-start + dup mul? if
-    mul-len 4 advance get-number
-    over c@ [char] , = if
-      1 advance get-number
-      1 = swap c@ [char] ) = and if
-        enabled * * sum +!
-      else 2drop then
-    else 2drop drop then
-  else drop then ;
+  disabled mul-len 0< or       if drop exit then
+  mul-start +
+  dup s" mul(" s= 0=           if drop exit then
+  mul-len 4 advance get-number
+  over c@ [char] , <>          if 2drop drop exit then
+  1 advance get-number
+  1 <> swap c@ [char] ) <> or  if 2drop exit then
+  * sum +! ;
 
-: handle-char ( addr i ch -- )
-  case
+: handle-char ( addr i -- )
+  2dup + c@ case
   [char] m of to mul-start drop endof
-  [char] ) of to mul-end check-mul reset-mul endof
+  [char] ) of to mul-end check-mul endof
   >r 2drop r>
   endcase ;
+: handle-do's ( addr -- )
+  dup s" do()"    s= if false to disabled then
+      s" don't()" s= if  true to disabled then ;
 
 : scan-part1 ( addr u -- )
-  reset-mul 0 do dup i + c@ over i rot handle-char loop drop ;
+  0 do dup i handle-char loop drop ;
 
 : scan-part2 ( addr u -- )
-  reset-mul 0 do dup i +
-  dup do? if 1 to enabled then
-  dup don't? if 0 to enabled then
-  c@ over i rot handle-char loop drop ;
+  0 do dup i 2dup + handle-do's handle-char loop drop ;
 
-: scan-all-muls ( fd xt -- )
-  0 sum ! begin here 4096 chars 2dup 0 fill
-  3 pick read-line throw while
-  here swap 2 pick execute
-  repeat 2drop drop sum @ ;
+: scan-all-muls ( fd xt -- n )
+  0 sum ! >r begin here 4096
+  2 pick read-line throw while
+  here swap r@ reset-mul execute
+  repeat 2drop r> drop sum @ ;
 
 s" input" r/o open-file throw
 dup ' scan-part1 scan-all-muls ." Part 1: " . cr
