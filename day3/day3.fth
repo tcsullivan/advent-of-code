@@ -13,8 +13,7 @@
   i s" mul("    s= if
     i 4 + get-number dup c@ [char] , = if
       1+ get-number c@ [char] ) = if
-        rot >r * tuck \ s2 x s1 x | en
-        + -rot r@ * + swap r>
+        * rot over + >r over >r * + 2r>
       else 2drop then
     else 2drop then
   then loop drop ;
