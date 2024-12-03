@@ -1,29 +1,25 @@
-true value do?
-create sum1 0 ,
-create sum2 0 ,
-
-: s=            tuck compare 0= ;
-: get-number    99 0 s>d 2swap >number rot 2drop ;
+: s=         tuck compare 0= ;
+: get-number 99 0 s>d 2swap >number rot 2drop ;
 
 : scan-chars ( addr u -- )
-  0 do i over +
-  do? over s" do()" s= or
-      over s" don't()" s= 0= and to do?
-  dup s" mul(" s= if
-    4 + get-number dup c@ [char] , = if
+  0 0 2swap 1 -rot over + swap do
+  i s" do()"    s= if drop 1 then
+  i s" don't()" s= if drop 0 then
+  i s" mul("    s= if
+    i 4 + get-number dup c@ [char] , = if
       1+ get-number c@ [char] ) = if
-        * do? if dup sum2 +! then sum1 +!
+        rot >r * tuck \ s2 x s1 x | en
+        + -rot r@ * + swap r>
       else 2drop then
     else 2drop then
-  else drop then
-  loop drop ;
+  then loop drop ;
 
-: scan-all-muls ( fd -- )
-  >r begin here 4096 r@ read-line throw while
-  here swap scan-chars repeat r> 2drop ;
+s" input" r/o open-file throw
+here over file-size throw d>s
+rot read-file throw
+here swap scan-chars
 
-s" input" r/o open-file throw scan-all-muls
-." Part 1: " sum1 ? cr
-." Part 2: " sum2 ? cr
+." Part 1: " . cr
+." Part 2: " . cr
 bye
 
