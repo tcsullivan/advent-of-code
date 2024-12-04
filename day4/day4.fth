@@ -13,8 +13,7 @@ include ../common.fth
 : +xmas?       ( n c-addr -- n )     xmas? if 1+ then ;
 : +x-mas?      ( n c-addr -- n )    x-mas? if 1+ then ;
 : +xmas-here?  ( n -- n )           -4 allot here +xmas? ;
-: +x-mas-here?  ( n -- n )          -5 allot here +x-mas? ;
-: -xmas        ( n -- n )           3 - ;
+: +x-mas-here? ( n -- n )           -5 allot here +x-mas? ;
 
 : read-first   ( fd -- c-addr )     input-line if dup to width allot else abort then ;
 : save-line    ( c-addr u -- )      allot drop height 1+ to height ;
@@ -26,11 +25,11 @@ include ../common.fth
                                     dup 1- dup width - c@ c, width + c@ c,
                                         1+ dup width - c@ c, width + c@ c, ;
 
-: search-horiz ( -- n ) 0 height       0 do width -xmas 0 do j i    to-map    +xmas?      loop loop ;
-: search-vert  ( -- n ) 0 height -xmas 0 do width       0 do j i  0 word>here +xmas-here? loop loop ;
-: search-\     ( -- n ) 0 height -xmas 0 do width -xmas 0 do j i  1 word>here +xmas-here? loop loop ;
-: search-/     ( -- n ) 0 height -xmas 0 do width       3 do j i -1 word>here +xmas-here? loop loop ;
-: search-x     ( -- n ) 0 height 1-    1 do width 1-    1 do j i  x-mas>here +x-mas-here? loop loop ;
+: search-horiz ( -- n ) 0 height     0 do width 3 - 0 do j i    to-map    +xmas?       loop loop ;
+: search-vert  ( -- n ) 0 height 3 - 0 do width     0 do j i  0 word>here +xmas-here?  loop loop ;
+: search-\     ( -- n ) 0 height 3 - 0 do width 3 - 0 do j i  1 word>here +xmas-here?  loop loop ;
+: search-/     ( -- n ) 0 height 3 - 0 do width     3 do j i -1 word>here +xmas-here?  loop loop ;
+: search-x     ( -- n ) 0 height 1-  1 do width 1-  1 do j i   x-mas>here +x-mas-here? loop loop ;
 
 open-input dup read-first to wordmap
 ' save-line each-line
