@@ -15,3 +15,9 @@
   ['] + compile, ['] swap compile,
   postpone do ; immediate
 : cell-loop cell postpone literal postpone +loop ; immediate
+
+: open-input ( -- fd )              s" input" r/o open-file throw ;
+: input-line ( fd -- c-addr u b )   here 4096 rot read-line throw here -rot ;
+: each-line  ( fd xt -- )           begin over input-line while
+                                    2 pick execute repeat 2drop 2drop ;
+
