@@ -1,3 +1,10 @@
+0 constant north
+1 constant east
+2 constant south
+3 constant west
+
+: times ( xt n -- ) 0 ?do dup >r execute r> loop drop ;
+: 2= ( a1 b1 a1 b2 -- b) rot = >r = r> and ;
 
 : insert-sort ( addr u -- )
   1 do dup i cells + @ i 1-
