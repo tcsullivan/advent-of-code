@@ -36,31 +36,36 @@ create loopsend loops ,
   >r 2dup r> advance 2dup to-map c@ [char] # <>
   if 2nip else 2drop then ;
 
-: loop?                     \ x y d
-  7000 pad ! \ 4460 pad !
-  >r 2dup r@ turn >r        \ x y x y | d d
-  begin 2dup in-map? pad @ 0> and while  \ x y x y | d d
-  -1 pad +!
-  2dup r@ safe-advance 2tuck 2= if \ x y x y | d d
-  r> turn >r else
-  2over 2over 2= if
-  2drop r> drop r> true exit
-  then then repeat
-  2drop r> drop r> false ; \ x y d b
 : walk
   north >r begin 2dup in-map? while
-  r@ loop? nip if 2dup add-loop then
   2dup r@ safe-advance 2dup mark-pos
-  2tuck 2= if r> turn >r else
-  then repeat 2drop r> drop ;
+  2tuck 2= if r> turn >r then
+  repeat 2drop r> drop ;
+
 : count-x
   0 height 0 do width 0 do j i to-map c@ [char] X = if 1+ then loop loop ;
+
+10000 constant walk2max
+: walk2
+  0 pad !
+  north >r begin 2dup in-map? pad @ walk2max < and while
+  2dup r@ safe-advance 2tuck 2= if r> turn >r then
+  1 pad +!
+  repeat 2drop r> drop pad @ walk2max = ;
+
+: count-loops
+  0 height 0 do width 0 do
+  j i to-map c@ [char] X = if
+    [char] # j i to-map c!
+    start 2@ walk2 if 1+ then
+    [char] X j i to-map c!
+  then loop loop 2 - ; \ -2 for first and last X's
 
 open-input dup read-first to wordmap
 ' save-line each-line
 ." Dimensions: " width . ." x " height . cr
 find-start 2dup start 2!
 walk count-x . cr
-loopsend @ loops - 2/ . cr
+count-loops . cr
 bye
 
