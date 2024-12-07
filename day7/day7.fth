@@ -16,6 +16,7 @@ create part2 0 ,
                                          1 swap 0 ?do over * loop then nip ;
 : concat      ( n n -- nn )              dup begin dup 0<> while
                                          rot 10 * -rot 10 / repeat drop + ;
+: get-bit     ( n n -- n )               1- 0 ?do ebase / loop ebase mod ;
 
 : capture-equ   read-number rot to result advance
                 begin dup 0<> while
@@ -26,8 +27,7 @@ create part2 0 ,
                 nums @ \ result
                 nums-count 1 do
                 nums i cells + @
-                j i 1- 0 ?do ebase / loop
-                ebase mod case
+                j i get-bit case
                 0 of + endof
                 1 of * endof
                 2 of concat endof
