@@ -1,13 +1,12 @@
 include ../common.fth
 
-create lineno 1 ,
-create sum 0 ,
 0 value result
+2 value ebase
 create nums 100 cells allot
 nums value numsend
 
-: binary  2 base ! ;
-: ternary 3 base ! ;
+create part1 0 ,
+create part2 0 ,
 
 : advance 1- swap 1+ swap ;
 : read-number 0 s>d 2swap >number 2>r d>s 2r> ;
@@ -20,36 +19,32 @@ nums value numsend
   advance read-number rot numsend !
   numsend cell+ to numsend repeat 2drop ;
 
-: pow ( x n -- x^n ) dup 0 <= if drop 1 else 1- 0 ?do dup * loop then ;
+: pow ( x n -- x^n ) dup 0 <= if drop 1 else 1 swap 0 ?do over * loop then nip ;
 : concat ( n n -- nn )
-  dup 0 >r begin dup 0<> while r> 1+ >r 10 / repeat
-  drop swap r> 0 ?do 10 * loop + ;
+  dup begin dup 0<> while rot 10 * -rot 10 / repeat drop + ;
 
 : figure-equ
-  ternary
-  base @ nums-count 1- pow 0 do
+  ebase nums-count 1- pow 0 do
   nums @ \ result
   nums-count 1 do
   nums i cells + @
-  j i 1- 0 ?do base @ / loop
-  base @ mod
-  case
+  j i 1- 0 ?do ebase / loop
+  ebase mod case
   0 of + endof
   1 of * endof
   2 of concat endof
-  endcase
-  loop
-  result = if unloop true decimal exit then
-  loop false decimal ;
+  endcase loop
+  result = if unloop true exit then
+  loop false ;
 
 : solve
-  lineno ? 1 lineno +!
   capture-equ
-  figure-equ
-  if result sum +! then
+  2 to ebase figure-equ if result part1 +! result part2 +! else
+  3 to ebase figure-equ if result part2 +! then then
   nums-reset ;
 
 open-input ' solve each-line
-sum ? cr
+." Part 1: " part1 ? cr
+." Part 2: " part2 ? cr
 bye
 
