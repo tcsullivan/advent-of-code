@@ -28,6 +28,7 @@ create width 0 ,
 : add-anti ( y x -- )       anticount @ 0 ?do
                             2dup i get-anti 2= if unloop 2drop exit then loop 
                             new-anti ;
+: insert-anti ( y x -- )    2dup in-map? dup >r if add-anti else 2drop then r> ;
 : antinode ( xy xy -- xy )  rot + >r + r> ;
 : flip-antinode             negate swap negate swap ;
 : ants>antis ( -- )         antcount @ 0 ?do i get-ant ant-xy add-anti loop ;
@@ -44,20 +45,15 @@ create width 0 ,
   2dup ant-match? if 2dup 4 pick execute then
   drop loop drop loop drop ;
 
-: insert-anti
-  2dup in-map? dup >r if add-anti else 2drop then r> ;
-
-: initial-scan
-  2dup ant-dist
-  rot ant-xy 2over antinode insert-anti drop
-  flip-antinode
-  rot ant-xy 2swap antinode insert-anti drop ;
-: full-scan
-  2dup ant-dist
-  rot ant-xy begin 2over antinode 2dup insert-anti 0= until 2drop
-  flip-antinode
-  rot ant-xy begin 2over antinode 2dup insert-anti 0= until 2drop
-  2drop ;
+: initial-scan  2dup ant-dist
+                rot ant-xy 2over antinode insert-anti drop
+                flip-antinode
+                rot ant-xy 2swap antinode insert-anti drop ;
+: full-scan     2dup ant-dist
+                rot ant-xy begin 2over antinode 2dup insert-anti 0= until 2drop
+                flip-antinode
+                rot ant-xy begin 2over antinode 2dup insert-anti 0= until 2drop
+                2drop ;
 
 open-input ' gather-ants each-line
 ' initial-scan each-ant-pair ." Part 1: " anticount ? cr
