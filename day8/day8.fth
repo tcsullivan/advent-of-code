@@ -12,20 +12,23 @@ create antlist  3 1000 * allot
 
 : 2c@                       dup c@ swap 1+ c@ ;
 : 2c!                       tuck c! 1+ c! ;
-: ant-xy     ( ant -- x y ) 1+ 2c@ ;
-: get-ant    ( n -- ant )   3 * antlist + ;
-: new-ant    ( x y n -- )   antcount dup 1+ to antcount get-ant tuck c! 1+ 2c! ;
-: ant-match? ( a1 a2 -- b ) c@ swap c@ = ;
-: ant-dist ( a1 a2 -- n n ) ant-xy rot ant-xy rot swap - -rot - swap ;
+
+: get-ant  ( n -- ant )     3 * antlist + ;
 : get-anti ( n -- y x )     2* antilist + ;
+: ant-xy   ( ant -- x y )   1+ 2c@ ;
 : anti-xy  ( n -- y x )     get-anti 2c@ swap ;
+: new-ant  ( x y n -- )     antcount  dup 1+ to antcount  get-ant tuck c! 1+ 2c! ;
 : new-anti ( y x -- )       anticount dup 1+ to anticount get-anti 2c! ;
 : add-anti ( y x -- )       anticount 0 ?do 2dup i anti-xy 2=
                             if unloop 2drop exit then loop new-anti ;
 : insert-anti ( y x -- )    2dup in-map? dup >r if add-anti else 2drop then r> ;
+: ants>antis  ( -- )        antcount 0 ?do i get-ant ant-xy add-anti loop ;
+
+: ant-match? ( a1 a2 -- b ) c@ swap c@ = ;
+: ant-dist ( a1 a2 -- n n ) ant-xy rot ant-xy rot swap - -rot - swap ;
+
 : antinode ( xy xy -- xy )  rot + >r + r> ;
 : flip-antinode             negate swap negate swap ;
-: ants>antis ( -- )         antcount 0 ?do i get-ant ant-xy add-anti loop ;
 
 : find-ants ( c-addr u -- ) dup to width
                             0 ?do dup i + c@ dup [char] . <> if
