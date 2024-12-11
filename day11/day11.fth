@@ -15,11 +15,9 @@
   drop 2024 * i !
   then then cell +loop over - ;
 : blink-n ( c-addr u n -- c-addr u )
-  0 do i . blink loop ;
+  0 do blink loop nip cell / ;
 
-s" input" slurp-file evaluate
-stack>buffer 2dup dump-stones
-75 blink-n
-nip cell / . cr
+s" input" slurp-file evaluate stack>buffer
+25 blink-n . cr
 bye
 
