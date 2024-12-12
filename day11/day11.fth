@@ -4,7 +4,6 @@ create dict2 max-dict allot
 dict  value from-dict
 dict2 value to-dict
 
-: id@     @ ;
 : count@  cell+ @ ;
 : dict+   [ 2 cells ] literal + ;
 : dict!   tuck ! cell+ +! ;
@@ -13,8 +12,7 @@ dict2 value to-dict
             postpone count@ postpone while ; immediate
 : loop-dict postpone dict+ postpone repeat postpone drop ; immediate
 
-: dict-add   ( n id -- ) each-dict 2dup id@ = if dict! exit then dict+ repeat dict! ;
-: dict-dump  ( -- )      each-dict dup id@ . dup count@ . cr loop-dict ;
+: dict-add   ( n id -- ) each-dict 2dup @ = if dict! exit then dict+ repeat dict! ;
 : dict-total ( -- n )    0 each-dict dup count@ rot + swap loop-dict ;
 : dict-swap              to-dict from-dict to to-dict to from-dict
                          to-dict max-dict 0 fill ;
@@ -26,10 +24,12 @@ dict2 value to-dict
 
 : blink ( -- )
   from-dict begin dup count@ while
-  dup id@ over count@ swap \ dict count id
-  dup 0= if drop 1 dict-add else
-  dup digits dup even? if split rot tuck swap dict-add swap dict-add
-  else drop 2024 * dict-add then then
+  dup @ over count@ swap \ dict count id
+  ?dup if
+    dup digits dup even? if
+    split rot tuck swap dict-add swap dict-add
+    else drop 2024 * dict-add then
+  else 1 dict-add then
   loop-dict ;
 : blink-n ( n -- ) 0 do dict-swap blink loop ;
 
