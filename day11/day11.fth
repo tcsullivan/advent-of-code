@@ -1,23 +1,40 @@
-: stack>buffer ( ... -- c-addr u )
-  here depth 1- cells 2dup 2>r tuck + >r allot
-  r> depth 1- 0 do cell - tuck ! loop drop 2r> ;
+10000 cells constant max-dict
+create dict max-dict allot
+create dict2 max-dict allot
+dict  value from-dict
+dict2 value to-dict
 
-: dump-stones over + swap do i ? cell +loop cr ;
+: id@     @ ;
+: count@  cell+ @ ;
+: dict+   [ 2 cells ] literal + ;
+: dict!   tuck ! cell+ +! ;
+
+: each-dict postpone to-dict postpone begin postpone dup
+            postpone count@ postpone while ; immediate
+: loop-dict postpone dict+ postpone repeat postpone drop ; immediate
+
+: dict-add   ( n id -- ) each-dict 2dup id@ = if dict! exit then dict+ repeat dict! ;
+: dict-dump  ( -- )      each-dict dup id@ . dup count@ . cr loop-dict ;
+: dict-total ( -- n )    0 each-dict dup count@ rot + swap loop-dict ;
+: dict-swap              to-dict from-dict to to-dict to from-dict
+                         to-dict max-dict 0 fill ;
+: stack>dict             depth 0 do 1 swap dict-add loop ;
+
 : digits 0 begin 1+ swap 10 / tuck 0= until nip ;
 : even?  1 and 0= ;
-: split ( n digits -- n1 n2 )
-  2/ 1 swap 0 ?do 10 * loop /mod ;
-: blink ( c-addr u -- c-addr u )
-  over + 2dup swap do
-  i @
-  dup 0= if drop 1 i ! else
-  dup digits dup even? if split i ! over ! cell+ else
-  drop 2024 * i !
-  then then cell +loop over - ;
-: blink-n ( c-addr u n -- c-addr u )
-  0 do blink loop nip cell / ;
+: split ( n digs -- n1 n2 ) 2/ 1 swap 0 ?do 10 * loop /mod ;
 
-s" input" slurp-file evaluate stack>buffer
-25 blink-n . cr
+: blink ( -- )
+  from-dict begin dup count@ while
+  dup id@ over count@ swap \ dict count id
+  dup 0= if drop 1 dict-add else
+  dup digits dup even? if split rot tuck swap dict-add swap dict-add
+  else drop 2024 * dict-add then then
+  loop-dict ;
+: blink-n ( n -- ) 0 do dict-swap blink loop ;
+
+s" input" slurp-file evaluate stack>dict
+25 blink-n ." Part 1: " dict-total . cr
+50 blink-n ." Part 2: " dict-total . cr
 bye
 
