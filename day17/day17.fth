@@ -8,9 +8,7 @@ variable origu
 create outp 100 allot
 variable oute
 
-: outemit [char] 0 + oute @ tuck c!
-          [char] , swap 1+ tuck c!
-          1+ oute ! ;
+defer outemit
 
 : combo case
   0 of 0 endof
@@ -23,10 +21,10 @@ variable oute
   endcase ;
 : adv A 1 rot combo lshift / to A ;
 : bxl B xor                  to B ;
-: bst combo 8 mod            to B ;
+: bst combo 7 and            to B ;
 : jnz A if 4 - to IP else drop then ;
 : bxc drop B C xor           to B ;
-: out combo 8 mod outemit ;
+: out combo 7 and outemit ;
 : bdv A 1 rot combo lshift / to B ;
 : cdv A 1 rot combo lshift / to C ;
 
@@ -35,18 +33,13 @@ create optable
 ' bxc , ' out , ' bdv , ' cdv ,
 
 : c>s c@ [char] 0 - ;
-: reset 0 to B 0 to C 0 to IP
-        outp oute ! ;
-: exec  reset orig origu @ begin IP over < while
+: exec  orig origu @ begin IP over < oute @ 0>= and while
         over IP + dup
         2 + c>s swap c>s cells optable + @
         execute IP 4 + to IP repeat 2drop ;
-: test  origu @ oute @ <> if false exit then
-        origu @ 0 do
-        orig i + c@ outp i + c@ <> if
-        unloop false exit then loop true ;
-: runA  100000000 10000000 do
-        i to A exec test if i . leave then loop ;
+: reset 0 to B 0 to C 0 to IP orig oute ! ;
+: runA  0 begin dup 131071 and 0= if 13 emit dup . then dup to A reset exec
+        origu @ oute @ orig - - 1 > while 1+ repeat ;
 
 : Register ;
 : A:       0 s>d bl parse >number 2drop d>s to A ;
@@ -55,6 +48,15 @@ create optable
 : Program: bl parse dup origu ! orig swap move ;
 
 include input
-." Part 1: " exec outp oute @ over - type cr
-." Part 2: " runA cr
+
+:noname [char] 0 + oute @ tuck c!
+        [char] , swap 1+ tuck c!
+        1+ oute ! ;
+is outemit
+." Part 1: " outp oute ! exec outp oute @ over - type cr
+
+:noname [char] 0 + oute @ c@ = 
+        if 2 oute +! else -1 oute ! then ;
+is outemit
+." Part 2: " runA . cr
 bye
